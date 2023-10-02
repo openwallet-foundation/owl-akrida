@@ -1,0 +1,28 @@
+version: "3"
+services:
+  holder-db:
+    image: postgres:14.3
+    hostname: holder-db
+    restart: unless-stopped
+    ports: # Uncomment to access postgres outside of containers
+      - "5432:5432"
+    volumes:
+      - ./holder-db:/var/lib/postgresql/data:consistent
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+  redis-host:
+    image: "redis:alpine"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/var/lib/redis
+      - ./redis.conf:/etc/redis/redis.conf:ro,z
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    env_file:
+      - .env
