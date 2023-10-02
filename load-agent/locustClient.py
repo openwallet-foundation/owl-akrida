@@ -12,11 +12,13 @@ from gevent import subprocess
 from gevent import select
 from gevent import lock as gevent_lock
 
-SHUTDOWN_TIMEOUT_SECONDS=10
-READ_TIMEOUT_SECONDS=120
-ERRORS_BEFORE_RESTART=10
-START_PORT= json.loads(os.getenv('START_PORT'))
-END_PORT= json.loads(os.getenv('END_PORT'))
+SHUTDOWN_TIMEOUT_SECONDS = 10
+READ_TIMEOUT_SECONDS = 120
+ERRORS_BEFORE_RESTART = 10
+START_PORT = json.loads(os.getenv("START_PORT"))
+END_PORT = json.loads(os.getenv("END_PORT"))
+# Message to send mediator, defaults to "ping"
+MESSAGE_TO_SEND = os.getenv("MESSAGE_TO_SEND", "ping")
 class PortManager:
     def __init__(self):
         self.lock = gevent_lock.BoundedSemaphore()
@@ -301,20 +303,19 @@ class CustomClient:
         if r.status_code != 200:
             raise Exception(r.content)
 
+
     @stopwatch
     def msg_client(self, connection_id):
-        self.run_command({"cmd":"receiveMessage"})
+        self.run_command({"cmd": "receiveMessage"})
 
-        headers = json.loads(os.getenv('ISSUER_HEADERS'))
-        headers['Content-Type'] = 'application/json'
+        headers = json.loads(os.getenv("ISSUER_HEADERS"))
+        headers["Content-Type"] = "application/json"
 
         r = requests.post(
-            os.getenv('ISSUER_URL') + '/connections/' + connection_id + '/send-message', 
-            json={
-                "content": "ping"
-            },
-            headers=headers
-            )
+            os.getenv("ISSUER_URL") + "/connections/" + connection_id + "/send-message",
+            json={"content": MESSAGE_TO_SEND},
+            headers=headers,
+        )
         r = r.json()
 
         line = self.readjsonline()
