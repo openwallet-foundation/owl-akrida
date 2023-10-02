@@ -5,9 +5,9 @@ services:
     hostname: mediator
     restart: unless-stopped
     environment:
-      - ACAPY_ENDPOINT=[http://mediator-perf-test.dev.indiciotech.io:3000,ws://mediator-perf-test.dev.indiciotech.io:3000]
+      - ACAPY_ENDPOINT=[http://{insertDNSEntryHere.com}:3000,ws://{insertDNSEntryHere.com}:3000]
       - ACAPY_WALLET_STORAGE_CONFIG={"url":"db:5432","wallet_scheme":"DatabasePerWallet"}
-      - ACAPY_WALLET_STORAGE_CREDS={"account":"development","password":"development","admin_account":"development","admin_password":"development"}
+      - ACAPY_WALLET_STORAGE_CREDS={"account":"insertStringHere","password":"insertStringHere","admin_account":"insertStringHere","admin_password":"insertStringHere"}
       - ACAPY_WALLET_KEY=testing
     volumes:
       - ./wait-for-it:/home/indy/wait-for-it:z
@@ -28,8 +28,8 @@ services:
     #    ports: # Uncomment to access postgres outside of containers
     #      - "5432:5432"
     environment:
-      POSTGRES_USER: development
-      POSTGRES_PASSWORD: development
+      POSTGRES_USER: insertStringHere
+      POSTGRES_PASSWORD: insertStringHere
     networks:
       - mediator-network
 
