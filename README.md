@@ -1,6 +1,54 @@
-# Load Agent using Locust
+<p align="center">
+  <br />
+  <img
+    alt="Hyperledger Aries logo"
+    src="https://raw.githubusercontent.com/hyperledger/aries-framework-javascript/aa31131825e3331dc93694bc58414d955dcb1129/images/aries-logo.png"
+    height="250px"
+  />
+</p>
 
-Locust is an open source load testing tool. Locust allows defining user behaviour with Python code, and swarming your system with millions of simultaneous users. 
+<h1 align="center"><b>Aries Akrida</b></h1>
+
+<p align="center">
+  <a href="#features">Features</a> &nbsp;|&nbsp;
+  <a href="#getting-started">Getting started</a> &nbsp;|&nbsp;
+  <a href="#contributing">Contributing</a> &nbsp;|&nbsp;
+  <a href="#license">License</a> 
+</p>
+
+The Aries Akrida is designed to **load test** various [Hyperledger Aries](https://www.hyperledger.org/projects/aries) **deployments**.
+
+The project uses the [Locust](https://locust.io/) tool in combination with [Aries Framwork Javascript](https://github.com/hyperledger/aries-framework-javascript) to test [DIDComm](https://decentralized-id.com/projects/decentralized-identity-foundation/did-communications/) based protocols. 
+
+From Ancient Greek ἀκρίς, or akrída, means locust or grasshopper.
+
+## Features
+
+- 🦗 Easy to run load tests distributed over multiple machines using [Locust](https://locust.io/) with the ability to swarm from thousands to hundreds of thousands of simultaneous users.
+- 🐍 Easy to write Python tests
+- 📦️ Isolated users using greenlet and Node.js environment
+- 📃 Provides a user friendly web interface that shows the progress of your test in real-time. It can also be run without the UI, making it easy to use for CI/CD testing.
+
+## Design 
+
+TODO
+
+## Getting Started
+
+TODO
+
+### Demo
+
+TODO
+
+## Contributing
+
+If you would like to contribute to the framework, please read the [Framework Developers README](/DEVREADME.md) and the [CONTRIBUTING](/CONTRIBUTING.md) guidelines. These documents will provide more information to get you started!
+
+## License
+
+Hyperledger Akrida is licensed under the [Apache License Version 2.0 (Apache-2.0)](/LICENSE).
+
 
 ## Setup VM to run
 
