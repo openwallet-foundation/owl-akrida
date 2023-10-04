@@ -32,7 +32,7 @@ From Ancient Greek ἀκρίς, or akrída, means locust or grasshopper.
 
 ## Design 
 
-![Design Image](./docs/design.png)
+![Design Image](./docs/designTransparent.png)
 
 Main Design Requirements
 - Use proven load scale platform ( Locust )
