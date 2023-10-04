@@ -11,6 +11,7 @@
 
 <p align="center">
   <a href="#features">Features</a> &nbsp;|&nbsp;
+  <a href="#design">Design</a> &nbsp;|&nbsp;
   <a href="#getting-started">Getting started</a> &nbsp;|&nbsp;
   <a href="#contributing">Contributing</a> &nbsp;|&nbsp;
   <a href="#license">License</a> 
@@ -31,7 +32,33 @@ From Ancient Greek ἀκρίς, or akrída, means locust or grasshopper.
 
 ## Design 
 
-TODO
+![Design Image](./docs/design.png)
+
+Main Design Requirements
+- Use proven load scale platform ( Locust )
+- Support scaling with the use of clustering ( Locust )
+- Provide easy to use interface with metrics ( Locust )
+- Ensure each user scales independently ( Independent Aries Framework Javascript Subprocesses )
+- Simulate real world clients ( Aries Framework Javascript )
+
+Aries Akrida was built using the following code bases.
+
+- Locust
+- Aries Framework Javascript
+
+Aries Akrida uses Locust, a load testing tool, as the base for load testing. This decision was made for the following features
+
+- Clustering / Scaling
+- Simplicity
+- Community
+
+Locust is already a proven open source solution for load testing various environments. While Locust's main focus is on performance of HTTP based interfaces, Locust has the ability to be extended to support other protocols.
+
+Aries Akrida uses Aries Framework Javascript for the DIDComm protocol. Aries Framework Javascript was chosen because many DIDComm clients are written and use Aries Framework Javascript. By using Aries Framework Javascript as the client, Aries Akirda can best simulate real world clients.
+
+Aries Akrida uses a subprocess's stdin/stdout to call Aries Framework Javascript from Locust. Other Frameworks could be used in place of Aries Framework Javascript as long as the implement the same calls.
+
+See [design](./docs/DESIGN.md) for more design details.
 
 ## Getting Started
 
