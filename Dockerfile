@@ -23,6 +23,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rust.sh && sh --
 RUN git clone https://github.com/hyperledger/indy-sdk
 
 RUN cd indy-sdk/libindy && \
+    git checkout v1.16.0 && \
     /root/.cargo/bin/cargo build --release && \
     mv target/release/libindy.so /usr/lib/libindy.so
 
