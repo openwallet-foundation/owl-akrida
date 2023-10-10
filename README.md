@@ -32,7 +32,7 @@ From Ancient Greek ἀκρίς, or akrída, means locust or grasshopper.
 
 ## Design 
 
-![Design Image](./docs/designTransparent.png)
+![Design Image](./docs/images/designTransparent.png)
 
 Main Design Requirements
 - Use proven load scale platform ( Locust )
@@ -51,6 +51,7 @@ Aries Akrida uses Locust, a load testing tool, as the base for load testing. Thi
 - Clustering / Scaling
 - Simplicity
 - Community
+- Open Source License
 
 Locust is already a proven open source solution for load testing various environments. While Locust's main focus is on performance of HTTP based interfaces, Locust has the ability to be extended to support other protocols.
 
