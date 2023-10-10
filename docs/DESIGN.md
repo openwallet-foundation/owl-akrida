@@ -131,11 +131,13 @@ stdout <- {"error":1,"result":"Mediator timeout!"}
 
 ### command: receiveInvitation
 
-cmd: 
+cmd: receiveInvitation
 
-description: 
+description: This command receives an invitation from an issuer, verifier, or other didcomm agent. The command will return when the connection is in active state, or return an error on failure.
 
-parameters: None
+parameters: invitationUrl
+
+invitationUrl: this is the url for the DIDComm invitation
 
 Examples:
 
@@ -144,8 +146,8 @@ Successful command
 ```
 stdin -> {"cmd": "start","withMediation": true,"port":"5555"}
 stdout <- {"error":0,"result":"Initialized agent..."}
-stdin -> {"cmd":"ping_mediator"}
-stdout <- {"error":0,"result":"Ping Mediator"}
+stdin -> {"cmd":"receiveInvitation", "invitationUrl": "https://ys40cgl5r2.execute-api.us-east-1.amazonaws.com/Prod/message?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiZGRkY2M4NTYtZTU5MS00NzM3LWIyN2ItYmFkNzliZGQxZjMyIiwgInJlY2lwaWVudEtleXMiOiBbIjZ2OW1LSExGSDdDbVI4am5wVXZGY05OcUxybnZiY0hQazZvNGtaTHFSdDNrIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cHM6Ly95czQwY2dsNXIyLmV4ZWN1dGUtYXBpLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL1Byb2QvbWVzc2FnZSIsICJsYWJlbCI6ICJCb2IiLCAicm91dGluZ0tleXMiOiBbIjJrQXh1SnhEaUxjOGRGa2tncVM2WXBjS291RlJIVFUzUldyWjd6ZHZNZkhXIiwgIkZWUFJhZXZvRkhXVXJDaFFoa2UzMngyR1g4RnJLd3lob0JYN2h5M05SaHJqIl19"}
+stdout <- {"error":0,"result":"Receive Connection","connection":{"_tags":{"role":"receiver","state":"initial","invitationId":"9337c8c3-bf14-4073-9d55-4398ba8456cd","recipientKeyFingerprints":["z6Mktevz4sdGgHwTBGXQwmYSis9B4rNhP5Bcuqf1nuYLVthm"]},"metadata":{},"id":"9a678433-b844-4ef3-9992-710d32e4084c","createdAt":"2023-10-10T14:09:59.489Z","outOfBandInvitation":{"@type":"https://didcomm.org/out-of-band/1.1/invitation","@id":"9337c8c3-bf14-4073-9d55-4398ba8456cd","label":"Bob","accept":["didcomm/aip1","didcomm/aip2;env=rfc19"],"handshake_protocols":["https://didcomm.org/connections/1.0"],"services":[{"id":"#inline","serviceEndpoint":"https://ys40cgl5r2.execute-api.us-east-1.amazonaws.com/Prod/message","type":"did-communication","recipientKeys":["did:key:z6Mktevz4sdGgHwTBGXQwmYSis9B4rNhP5Bcuqf1nuYLVthm"],"routingKeys":["did:key:z6MkgCS1VZCf3t6bjkbTNQPwPvAKdUXGhLiQ7XmUxGbwGt4t","did:key:z6MktweUAuBEapzwxhY7PKbst3aGLhXhjqE4VCS3YF1PLve7"]}]},"role":"receiver","state":"prepare-response","autoAcceptConnection":true,"reusable":false}}
 ```
 
 Unsuccessful command
@@ -153,12 +155,30 @@ Unsuccessful command
 ```
 stdin -> {"cmd": "start","withMediation": true,"port":"5555"}
 stdout <- {"error":1,"result":{}} 
-stdin -> {"cmd":"ping_mediator"}
-stdout <- {"error":1,"result":"Mediator timeout!"}
+stdin -> {"cmd":"receiveInvitation", "invitationUrl": "https://ys40cgl5r2.execute-api.us-east-1.amazonaws.com/Prod/message?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiODIzNzE2NWUtMDJkNi00ZWE1LTg2MGItOWRhNGJiYTcxYzdkIiwgInJlY2lwaWVudEtleXMiOiBbIjR2UDd0MWI0ZWhlTXJwVjJrVUdTQUNqM2plbmkyUDJ1M0xmSkpaa0RWc3lHIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cHM6Ly95czQwY2dsNXIyLmV4ZWN1dGUtYXBpLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL1Byb2QvbWVzc2FnZSIsICJsYWJlbCI6ICJCb2IiLCAicm91dGluZ0tleXMiOiBbIjJrQXh1SnhEaUxjOGRGa2tncVM2WXBjS291RlJIVFUzUldyWjd6ZHZNZkhXIiwgIkZWUFJhZXZvRkhXVXJDaFFoa2UzMngyR1g4RnJLd3lob0JYN2h5M05SaHJqIl19"}
+stdout <- {"error":1,"result":{}}
 ```
 
-- Handling timeouts
-- Error handling
+### command: receiveCredential
+
+cmd: receiveCredential
+
+description: This command receives an credential from an issuer. The command will return when the credential has been received, or return an error on failure.
+
+parameters:
+
+invitationUrl: this is the url for the DIDComm invitation
+
+Examples:
+
+```
+stdin -> {"cmd": "start","withMediation": true,"port":"5555"}
+stdout <- {"error":0,"result":"Initialized agent..."}
+stdin -> {"cmd":"receiveInvitation", "invitationUrl": "https://ys40cgl5r2.execute-api.us-east-1.amazonaws.com/Prod/message?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiZGRkY2M4NTYtZTU5MS00NzM3LWIyN2ItYmFkNzliZGQxZjMyIiwgInJlY2lwaWVudEtleXMiOiBbIjZ2OW1LSExGSDdDbVI4am5wVXZGY05OcUxybnZiY0hQazZvNGtaTHFSdDNrIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cHM6Ly95czQwY2dsNXIyLmV4ZWN1dGUtYXBpLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL1Byb2QvbWVzc2FnZSIsICJsYWJlbCI6ICJCb2IiLCAicm91dGluZ0tleXMiOiBbIjJrQXh1SnhEaUxjOGRGa2tncVM2WXBjS291RlJIVFUzUldyWjd6ZHZNZkhXIiwgIkZWUFJhZXZvRkhXVXJDaFFoa2UzMngyR1g4RnJLd3lob0JYN2h5M05SaHJqIl19"}
+stdout <- {"error":0,"result":"Receive Connection","connection":{"_tags":{"role":"receiver","state":"initial","invitationId":"9337c8c3-bf14-4073-9d55-4398ba8456cd","recipientKeyFingerprints":["z6Mktevz4sdGgHwTBGXQwmYSis9B4rNhP5Bcuqf1nuYLVthm"]},"metadata":{},"id":"9a678433-b844-4ef3-9992-710d32e4084c","createdAt":"2023-10-10T14:09:59.489Z","outOfBandInvitation":{"@type":"https://didcomm.org/out-of-band/1.1/invitation","@id":"9337c8c3-bf14-4073-9d55-4398ba8456cd","label":"Bob","accept":["didcomm/aip1","didcomm/aip2;env=rfc19"],"handshake_protocols":["https://didcomm.org/connections/1.0"],"services":[{"id":"#inline","serviceEndpoint":"https://ys40cgl5r2.execute-api.us-east-1.amazonaws.com/Prod/message","type":"did-communication","recipientKeys":["did:key:z6Mktevz4sdGgHwTBGXQwmYSis9B4rNhP5Bcuqf1nuYLVthm"],"routingKeys":["did:key:z6MkgCS1VZCf3t6bjkbTNQPwPvAKdUXGhLiQ7XmUxGbwGt4t","did:key:z6MktweUAuBEapzwxhY7PKbst3aGLhXhjqE4VCS3YF1PLve7"]}]},"role":"receiver","state":"prepare-response","autoAcceptConnection":true,"reusable":false}}
+stdin -> {"cmd": "receiveCredential"}
+stdout <- {"error":0,"result":"Receive Credential"}
+```
 
 ## Configuration Design
 
