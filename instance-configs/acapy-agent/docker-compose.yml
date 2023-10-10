@@ -19,7 +19,7 @@ services:
     command: >
       start
         --arg-file ./configs/issuer.yml
-        --endpoint http://${ISSUER}:80
+        --endpoint http://${ISSUER}:8151
         --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis
         --log-level debug
     healthcheck:
