@@ -54,6 +54,69 @@ The design of the agent.js is such that a single stdin request is made, and a si
 
 This allows for manual testing of the interactions between Locust and agent.js. This pattern would also allow a new agent using Python or Rust to be defined as long as it followed the same input / output pattern.
 
+
+## locustClient.py
+
+Locust provides some [details](https://docs.locust.io/en/stable/testing-other-systems.html#other-examples) on how to extend Locust to support other protocols. For extending Locust, a file was created called ![locustClient.py](./load-agent/locustClient.py).
+
+The locustClient.py file contains all calls to agent.js. 
+
+Locust uses an events class to report the success or failure of the calls. This is managed by the stopwatch decorator, which also records timing.
+
+All the other locust*.py files are separate tests that extend the functionality defined in locustClient.py.
+
+### startup
+
+The startup function is to use the subprocess function to startup the agent.js service. It also calls the command start function inside of agent.js. The function also works with the PortManager, which is responsible for handling which ports each agent.js may use, to obtain a port for that specific User agent.js combo.
+
+In some cases, the startup may fail, in which case, an Exception is thrown, and the subprocess is shutdown.
+
+### shutdown
+
+The shutdown function is designed to terminate the agent.js subprocess. If the process fails to terminate, a best effort is made to kill the process by using the os.kill command.
+
+### ensure_is_running
+
+The ensure_is_running command is designed to check the status of the subprocess. While under intense load, unexpected situations can occur. These unexpected situations can result in a process crashing. Load tests can check the status of the subprocess, and potentially reset the subprocess code. The ensure_is_running will call the startup command again if the subprocess is not running. Other calls may need to be made for the test to recover, such as forming a connection with an issuer.
+
+### run_command
+
+The run_command function is designed to send a command to the agent.js file.
+
+### readjsonline
+
+The readjsonline function receives the response from the agent.js. If too many errors have occurred, the function will trigger a shutdown of the agent. This is to prevent cascading errors from impacting new cycles of the test.
+
+### ping_mediator
+
+This call runs the ping_mediator function. The goal of the ping_mediator function is to ensure that the agent is currently connected to the mediator without the involvement of any other agents, such as an Issuer or Verifier.
+
+### issuer_getinvite
+
+This function gets an invitation from an issuer.
+
+### issuer_getliveness
+
+This function tests the status of an issuer
+
+### accept_invite
+
+This function has the agent.js accept an invitation from an issuer or verifier.
+
+### receive_credential
+
+This function instructs the agent.js to accept a credential. This function will also instruct the issuer to send a credential as defined in the .env file.
+
+### revoke_credential
+
+This function tests revoking a credential.
+
+### msg_client
+
+This function tests sending a message from the issuer to the agent.js.
+
+## Subprocess Commands
+
 ### commmand: start 
 
 cmd: start

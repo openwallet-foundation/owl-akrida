@@ -32,6 +32,28 @@ From Ancient Greek ἀκρίς, or akrída, means locust or grasshopper.
 
 ## Design 
 
+Typically, three to four types of agents may be involved in a decentralized identity environment. There is typically a large number of holder agents, a mediator agent for the holder agents, and one or more issuer and verifier agents. In some environments, a mediator agent isn't required as the holder agents do not have dynamic IP addresses.
+
+Example of a typical environment with a mediator:
+
+![Typical environment with a mediator](./docs/images/holdermediatorissuer.png)
+
+Example of a typical environment without mediator:
+
+![Typical environment without mediator](./docs/images/holderissuerverifier.png)
+
+Aries Akrida takes the place of the holder agents, as the typical case for load testing is to test the server infrastructure of environments. In this case the server infrastructure includes the mediator, issuer, and verifier agents. The holder agent is the client.
+
+Example of Locust with a mediator:
+
+![Locust with a mediator](./docs/images/locustmediatorissuer.png)
+
+Example of Locust without mediator:
+
+![Locust without mediator](./docs/images/locustissuerverifier.png)
+
+Locust can run multiple holder agents per Locust instance. This can be controlled by a master Locust instance.
+
 ![Design Image](./docs/images/designTransparent.png)
 
 Main Design Requirements
@@ -63,7 +85,9 @@ See [design](./docs/DESIGN.md) for more design details.
 
 ## Getting Started
 
-TODO
+Before starting any load testing you **SHOULD** gain written permission that includes the time, method and various systems that you wish to load test. You **MUST NOT** load test any system that you do **NOT** have permission to test.
+
+For high concurrency testing, it is useful to run Locust on a VM where you can easily add more resources for bigger tests. Please read [docs/VM.md](./docs/VM.md)
 
 ### Demo
 
@@ -76,40 +100,6 @@ If you would like to contribute to the framework, please read the [Framework Dev
 ## License
 
 Hyperledger Akrida is licensed under the [Apache License Version 2.0 (Apache-2.0)](/LICENSE).
-
-
-## Setup VM to run
-
-For high concurrency testing, it is useful to run Locust on a VM where you can easily add more resources for bigger tests. Here is a script
-for setting up a new VM to run Locust.
-
-If your own machine is sufficient, jump to the [Running Locally](#running-locally) section.
-
-```
-apt-get update -y
-apt-get upgrade -y
-apt-get install -y docker.io git tmux htop sysstat iftop tcpdump
-curl -SL https://github.com/docker/compose/releases/download/v2.7.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-chmod a+x /usr/local/bin/docker-compose
-
-cat << EOF > /etc/docker/daemon.json
-{
-  "log-driver": "json-file",
-  "log-opts": {"max-size": "10m", "max-file": "3"}
-}
-EOF
-
-# Add swap file to add reliability to memory management...
-dd if=/dev/zero of=/swap bs=1M count=512
-chmod 0600 /swap
-mkswap /swap
-cat << EOF >> /etc/fstab
-# add
-/swap swap      swap    defaults        0 2
-EOF
-
-reboot
-```
 
 ## Running Locally
 
