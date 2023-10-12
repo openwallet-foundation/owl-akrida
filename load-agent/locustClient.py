@@ -24,7 +24,8 @@ ERRORS_BEFORE_RESTART = 10
 VERIFIED_TIMEOUT_SECONDS = int(os.getenv("VERIFIED_TIMEOUT_SECONDS", 20))
 START_PORT = json.loads(os.getenv("START_PORT"))
 END_PORT = json.loads(os.getenv("END_PORT"))
-
+# Message to send mediator, defaults to "ping"
+MESSAGE_TO_SEND = os.getenv("MESSAGE_TO_SEND", "ping")
 
 class PortManager:
     def __init__(self):
@@ -423,6 +424,7 @@ class CustomClient:
         if r.status_code != 200:
             raise Exception(r.content)
 
+
     @stopwatch
     def msg_client(self, connection_id):
         self.run_command({"cmd": "receiveMessage"})
@@ -432,7 +434,7 @@ class CustomClient:
 
         r = requests.post(
             os.getenv("ISSUER_URL") + "/connections/" + connection_id + "/send-message",
-            json={"content": "ping"},
+            json={"content": MESSAGE_TO_SEND},
             headers=headers,
         )
         r = r.json()

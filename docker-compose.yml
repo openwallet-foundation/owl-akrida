@@ -29,6 +29,7 @@ services:
       - LEDGER=${LEDGER}
       - START_PORT=${START_PORT}
       - END_PORT=${END_PORT}
+      - MESSAGE_TO_SEND=${MESSAGE_TO_SEND}
       - VERIFIED_TIMEOUT_SECONDS=${VERIFIED_TIMEOUT_SECONDS}
     networks:
       - app-network
