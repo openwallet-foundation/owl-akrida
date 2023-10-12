@@ -346,7 +346,7 @@ class CustomClient:
                     "name": "PerfScore",
                     "requested_attributes": {
                         item["name"]: {"name": item["name"]}
-                        for item in json.loads(CRED_ATTR)
+                        for item in json.loads(os.getenv("CRED_ATTR"))
                     },
                     "requested_predicates": {},
                     "version": "1.0",
