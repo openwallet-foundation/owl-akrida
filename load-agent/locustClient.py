@@ -365,13 +365,9 @@ class CustomClient:
                 "Encountered JSONDecodeError while parsing the request: ", r
             )
 
-        print("before line")
         line = self.readjsonline()
-        print("after line")
         r = r.json()
-        print("after line 2")
         pres_ex_id = r["presentation_exchange_id"]
-        print("pres ex id is ", pres_ex_id)
         # Want to do a for loop
         iteration = 0
         try:
