@@ -20,7 +20,7 @@ services:
       start
         --arg-file ./configs/issuer.yml
         --endpoint http://${ISSUER}:8151
-        --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis
+        --genesis-url ${ACAPY_GENESIS_URL}
         --log-level debug
     healthcheck:
       test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8151/status/live" | grep "200" > /dev/null
