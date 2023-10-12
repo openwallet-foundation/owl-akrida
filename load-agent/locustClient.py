@@ -344,7 +344,10 @@ class CustomClient:
                 "connection_id": connection_id,
                 "proof_request": {
                     "name": "PerfScore",
-                    "requested_attributes": {"score": {"name": "score"}},
+                    "requested_attributes": {
+                        item["name"]: {"name": item["name"]}
+                        for item in json.loads(CRED_ATTR)
+                    },
                     "requested_predicates": {},
                     "version": "1.0",
                 },
@@ -394,7 +397,6 @@ class CustomClient:
             raise Exception(
                 "Encountered JSONDecodeError while getting the presentation record: ", g
             )
-
 
     @stopwatch
     def revoke_credential(self, credential):
