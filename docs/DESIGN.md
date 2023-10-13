@@ -1,10 +1,48 @@
 # Aries Akrida Design
 
+Typically, three to four types of agents may be involved in a decentralized identity environment. There is typically a large number of holder agents, a mediator agent for the holder agents, and one or more issuer and verifier agents. In some environments, a mediator agent isn't required as the holder agents do not have dynamic IP addresses.
+
+Example of a typical environment with a mediator:
+
+![Typical environment with a mediator](./images/holdermediatorissuer.png)
+
+Example of a typical environment without mediator:
+
+![Typical environment without mediator](./images/holderissuerverifier.png)
+
+Aries Akrida takes the place of the holder agents, as the typical case for load testing is to test the server infrastructure of environments. In this case the server infrastructure includes the mediator, issuer, and verifier agents. The holder agent is the client.
+
+Example of Locust with a mediator:
+
+![Locust with a mediator](./images/locustmediatorissuer.png)
+
+Example of Locust without mediator:
+
+![Locust without mediator](./images/locustissuerverifier.png)
+
+Locust can run multiple holder agents per Locust instance. This can be controlled by a master Locust instance.
+
+![Design Image](./images/designTransparent.png)
+
+Main Design Requirements
 - Use proven load scale platform ( Locust )
 - Support scaling with the use of clustering ( Locust )
 - Provide easy to use interface with metrics ( Locust )
 - Ensure each user scales independently ( Independent Aries Framework Javascript Subprocesses )
 - Simulate real world clients ( Aries Framework Javascript )
+- Open Source License
+- Community around existing tools
+
+Aries Akrida was built using the following code bases.
+
+- Locust
+- Aries Framework Javascript
+
+Locust is already a proven open source solution for load testing various environments. While Locust's main focus is on performance of HTTP based interfaces, Locust has the ability to be extended to support other protocols.
+
+Aries Akrida uses Aries Framework Javascript for the DIDComm protocol. Aries Framework Javascript was chosen because many DIDComm clients are written and use Aries Framework Javascript. By using Aries Framework Javascript as the client, Aries Akirda can best simulate real world clients.
+
+Aries Akrida uses a subprocess's stdin/stdout to call Aries Framework Javascript from Locust. Other Frameworks could be used in place of Aries Framework Javascript as long as the implement the same calls.
 
 ## Why Locust
 
@@ -18,11 +56,11 @@ While there are some over-arching goals when picking a load testing framework, s
 
 We also want the framework to be easy to develop against, and something the community is familiar with. This means that the programming languages for the testing framework are going to be either Python or Javascript. 
 
-After reviewing Locust, JMeter, Taurus, nGrinder, The Grinder, k6, Tsung, and Siege, we found that Locust had the simplest interface to bring up and manage, was very capable, and was easily extendable. This is not saying the other frameworks aren't capable frameworks, but we found that for us, Locust was the best choice.
+After reviewing Locust, Molotov, JMeter, Taurus, nGrinder, The Grinder, k6, Tsung, and Siege, we found that Locust had the simplest interface to bring up and manage, was very capable, and was easily extendable. This is not saying the other frameworks aren't capable frameworks, but we found that for us, Locust was the best choice.
 
 ## Subprocess Design
 
-Each user in Locust is represented by a gevent greenlet. This greenlet runs all of the tasks for each user. After completing the tasks, the greenlet will repeat all the tasks after some type of wait interval.
+Each user in Locust is represented by a [gevent](https://www.gevent.org/) [greenlet](https://greenlet.readthedocs.io/en/latest/). This greenlet runs all of the tasks for each user. After completing the tasks, the greenlet will repeat all the tasks after some type of wait interval.
 
 As we can see below, each greenlet represents a different User.
 
@@ -30,11 +68,11 @@ As we can see below, each greenlet represents a different User.
 
 Greenlets works well when an individual user doesn't use too much CPU. In our case, we are doing some high CPU tasks, such as encryption and decryption of messages.
 
-In this case, we have each gevent greenlet create a subprocess to handle the CPU intensive tasks. Commands are sent over stdin, and responses are received over stdout.
+In this case, we have each gevent greenlet create a subprocess to handle the CPU intensive tasks. Commands are sent over stdin and responses are received over stdout.
 
 ![Greenlet](./images/subprocess.png)
 
-The commands are sent as JSON, and responses are received as JSON.
+The commands are sent as JSON and responses are received as JSON.
 
 Example of a successful start command being sent and response:
 
@@ -57,7 +95,7 @@ This allows for manual testing of the interactions between Locust and agent.js. 
 
 ## locustClient.py
 
-Locust provides some [details](https://docs.locust.io/en/stable/testing-other-systems.html#other-examples) on how to extend Locust to support other protocols. For extending Locust, a file was created called ![locustClient.py](./load-agent/locustClient.py).
+Locust provides some [details](https://docs.locust.io/en/stable/testing-other-systems.html#other-examples) on how to extend Locust to support other protocols. For extending Locust, a file was created called [locustClient.py](../load-agent/locustClient.py).
 
 The locustClient.py file contains all calls to agent.js. 
 
@@ -67,9 +105,11 @@ All the other locust*.py files are separate tests that extend the functionality 
 
 ### startup
 
-The startup function is to use the subprocess function to startup the agent.js service. It also calls the command start function inside of agent.js. The function also works with the PortManager, which is responsible for handling which ports each agent.js may use, to obtain a port for that specific User agent.js combo.
+The startup function is to use the subprocess function to startup the agent.js service. It also calls the command start function inside of agent.js.
 
-In some cases, the startup may fail, in which case, an Exception is thrown, and the subprocess is shutdown.
+The function also works with the PortManager, which is responsible for handling which ports each agent.js may use, to obtain a port for that specific User agent.js combo. So, for example, if ports 10000-10500 are exposed via the docker-compose.yml file, these 500 ports will be used for each of the users. If there’s one worker agent, maximally we can go to 500 workers. If there’s three worker agents, maximally we can go to 3*500=1500 workers.
+
+In some cases, the startup may fail, in which case, an Exception is thrown, and the subprocess is shutdown. The various tests will attempt to restart the subprocess, but some states may not be recoverable and restarting Locust may be required.
 
 ### shutdown
 
@@ -115,7 +155,39 @@ This function tests revoking a credential.
 
 This function tests sending a message from the issuer to the agent.js.
 
-## Subprocess Commands
+## locustIssue.py
+
+locustIssue.py is designed to test issuing credentials. 
+
+## locustMediatorIssue.py
+
+locustIssue.py is designed to test issuing credentials using a mediator.
+
+## locustIssueMsg.py
+
+locustIssueMsg.py is designed to test sending messages from the issuer to the AFJ Client.
+
+## locustMediatorMsg.py
+
+locustMediatorMsg.py is designed to test sending messages from the issuer to the AFJ Client using the mediator.
+
+## locustMediatorPing.py
+
+locustMediatorPing.py is designed to test the number of agents that can connect to a mediator. A ping will be sent to the mediator and return via the websocket connection to ensure the agent is still connected.
+
+## locustLiveness.py
+
+locustLiveness.py is designed to test the issuer's /status REST API Call.
+
+## Subprocess Commands - agent.js
+
+The agent.js is an event based architecture. It has a readline loop that listens for incoming commands. Commands are json strings. Examples
+
+```
+{"cmd":"start"}
+{"cmd":"ping_mediator"}
+{"cmd":"shutdown"}
+```
 
 ### commmand: start 
 
@@ -242,12 +314,4 @@ stdout <- {"error":0,"result":"Receive Connection","connection":{"_tags":{"role"
 stdin -> {"cmd": "receiveCredential"}
 stdout <- {"error":0,"result":"Receive Credential"}
 ```
-
-## Configuration Design
-
-
-
-## Why Aries Javascript Framework
-
-## Why not use Clustered Aries Framework Javascript or Aca-Py Users ?
 
