@@ -362,7 +362,7 @@ vim configs/issuer.yml
 :%s/{INTERNAL_IP}/111.11.11.11
 ```
 
-and hit enter, where you are replacing the `111.11.11.11` with the internal/private IP of the ACA-Py agent VM. To exit the in-line text editor and save your changes, go ahead and type in `:wq` and press enter.
+and hit enter, where you are replacing the `111.11.11.11` with the internal/private IP of the database VM. To exit the in-line text editor and save your changes, go ahead and type in `:wq` and press enter.
 
 Awesome! This tells our ACA-Py agent to communicate with our database, from the previous step, for information (e.g. anchoring DIDs, schemas, etc.).
 
