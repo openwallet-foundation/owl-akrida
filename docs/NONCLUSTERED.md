@@ -472,16 +472,21 @@ Now we arm our soliders for battle. In order to do this, we need to arm our troo
 Here is a script for setting up a new VM to run Locust.
 
 ```
-sudo echo '{
+sudo vim /etc/docker/daemon.json
+# Paste this in
+{
   "log-driver": "json-file",
   "log-opts": {"max-size": "10m", "max-file": "3"}
-}' >> /etc/docker/daemon.json
+}
 
 # Add swap file to add reliability to memory management...
 sudo dd if=/dev/zero of=/swap bs=1M count=512
 sudo chmod 0600 /swap
 sudo mkswap /swap
-sudo echo "/swap swap      swap    defaults        0 2" >> /etc/fstab
+
+sudo vim /etc/fstab
+# Add / Paste this in at the bottom
+/swap swap      swap    defaults        0 2
 
 sudo reboot
 ```
