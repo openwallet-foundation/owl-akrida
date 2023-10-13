@@ -1,0 +1,47 @@
+label: Issuer
+wallet-name: issuer
+inbound-transport:
+  - [http, 0.0.0.0, 8151]
+admin: [0.0.0.0, 8150]
+plugin:
+  - acapy_cache_redis.v0_1
+
+# Transport
+outbound-transport: http
+
+emit-new-didcomm-prefix: true
+
+# Admin
+admin-insecure-mode: true
+
+# Connections
+debug-connections: true
+debug-credentials: true
+debug-presentations: true
+auto-accept-invites: true
+auto-accept-requests: true
+auto-ping-connection: true
+public-invites: true
+
+# Credentials and Presentations
+preserve-exchange-records: false
+auto-store-credential: true
+auto-respond-credential-proposal: true
+auto-respond-credential-offer: true
+auto-respond-credential-request: true
+
+auto-respond-presentation-proposal: true
+auto-respond-presentation-request: true
+auto-verify-presentation: true
+
+# Wallet
+wallet-type: askar
+wallet-key: "insecure, for use in demo only"
+auto-provision: true
+
+wallet-storage-type: "postgres_storage"
+
+# Replace Internal IP
+plugin-config-value:
+  - redis_cache.connection="redis://{INTERNAL_IP}:6379/0"
+  - redis_cache.max_connections=90

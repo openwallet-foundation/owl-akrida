@@ -1,0 +1,30 @@
+version: "3"
+services:
+  issuer:
+    #image: ghcr.io/hyperledger/aries-cloudagent-python:py3.9-0.8.0-rc0
+    image: acapy-cache-redis
+    build:
+     context: ./
+     dockerfile: ./docker/Dockerfile
+    volumes:
+      - ./configs:/home/indy/configs:ro,z
+    ports:
+      - "8150:8150"
+      - "8151:8151"
+    environment:
+      ACAPY_WALLET_STORAGE_CONFIG: '{"url":"${DATABASE}:5432","max_connections":5}'
+      ACAPY_GENESIS_URL: ${ACAPY_GENESIS_URL}
+      ACAPY_WALLET_STORAGE_CREDS: '{"account":"${ACCOUNT}","password":"${PASSWORD}","admin_account":"${ADMIN_ACCOUNT}","admin_password":"${ADMIN_PASSWORD}"}'
+    #entrypoint: python -m cProfile -m aries_cloudagent
+    command: >
+      start
+        --arg-file ./configs/issuer.yml
+        --endpoint http://${ISSUER}:8151
+        --genesis-url ${ACAPY_GENESIS_URL}
+        --log-level debug
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8151/status/live" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 7s
+      timeout: 5s
+      retries: 5

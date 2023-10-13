@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "afj-load-testing"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+acapy-cache-redis = {git = "https://github.com/Indicio-tech/aries-acapy-cache-redis.git"}
+aries-askar = "^0.2.9"
+indy-vdr = "^0.3.4"
+aries-cloudagent = {version = "0.7.5", extras = ["askar", "bbs"]}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
