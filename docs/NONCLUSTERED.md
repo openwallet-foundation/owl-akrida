@@ -362,7 +362,7 @@ vim configs/issuer.yml
 :%s/{INTERNAL_IP}/111.11.11.11
 ```
 
-and hit enter, where you are replacing the `111.11.11.11` with the internal/private IP of the ACA-Py agent VM. To exit the in-line text editor and save your changes, go ahead and type in `:wq` and press enter.
+and hit enter, where you are replacing the `111.11.11.11` with the internal/private IP of the database VM. To exit the in-line text editor and save your changes, go ahead and type in `:wq` and press enter.
 
 Awesome! This tells our ACA-Py agent to communicate with our database, from the previous step, for information (e.g. anchoring DIDs, schemas, etc.).
 
@@ -472,16 +472,21 @@ Now we arm our soliders for battle. In order to do this, we need to arm our troo
 Here is a script for setting up a new VM to run Locust.
 
 ```
-sudo echo '{
+sudo vim /etc/docker/daemon.json
+# Paste this in
+{
   "log-driver": "json-file",
   "log-opts": {"max-size": "10m", "max-file": "3"}
-}' >> /etc/docker/daemon.json
+}
 
 # Add swap file to add reliability to memory management...
 sudo dd if=/dev/zero of=/swap bs=1M count=512
 sudo chmod 0600 /swap
 sudo mkswap /swap
-sudo echo "/swap swap      swap    defaults        0 2" >> /etc/fstab
+
+sudo vim /etc/fstab
+# Add / Paste this in at the bottom
+/swap swap      swap    defaults        0 2
 
 sudo reboot
 ```
