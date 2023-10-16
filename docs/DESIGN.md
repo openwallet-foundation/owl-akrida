@@ -101,6 +101,8 @@ The locustClient.py file contains all calls to agent.js.
 
 Locust uses an events class to report the success or failure of the calls. This is managed by the stopwatch decorator, which also records timing.
 
+The locustClient.py call also makes API calls to the Issuer or Verifier to obtain invitations, issue credentials, verify credentials, etc. This bypasses QR code generation, but this usually isn't a concern as QR codes are usually generated client side. State is returned from each of these calls, allowing connection_id, credential details, etc to be used in a later step.
+
 All the other locust*.py files are separate tests that extend the functionality defined in locustClient.py.
 
 ### startup
