@@ -8,6 +8,7 @@ import fcntl
 import os
 import signal
 
+WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
 class CustomLocust(User):
     abstract = True
@@ -40,7 +41,7 @@ class UserBehaviour(SequentialTaskSet):
         credential = self.client.receive_credential(self.invite["connection_id"])
 
     def on_start(self):
-        self.client.startup(withMediation=True)
+        self.client.startup(withMediation=bool(WITH_MEDIATION))
         self.get_invite()
         self.accept_invite()
         self.receive_credential()
