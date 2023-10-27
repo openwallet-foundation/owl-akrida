@@ -8,6 +8,8 @@ import fcntl
 import os
 import signal
 
+WITH_MEDIATION = os.getenv("WITH_MEDIATION")
+
 class CustomLocust(User):
     abstract = True
     def __init__(self, *args, **kwargs):
@@ -17,7 +19,7 @@ class CustomLocust(User):
 class UserBehaviour(SequentialTaskSet):
     def on_start(self):
         while not self.client.is_running():
-            self.client.startup(withMediation=True)
+            self.client.startup(withMediation=bool(WITH_MEDIATION))
 
         self.get_invite()
 
