@@ -56,6 +56,10 @@ For high concurrency testing, it is useful to run Locust on a VM where you can e
 
 TODO - Video Demo
 
+### Getting Started
+
+For spinning up the non-clustered portion of the environment, please see our [instructional document](./docs/NONCLUSTERED.md).
+
 ## Contributing
 
 If you would like to contribute to the framework, please read the [Framework Developers README](/DEVREADME.md) and the [CONTRIBUTING](/CONTRIBUTING.md) guidelines. These documents will provide more information to get you started!
