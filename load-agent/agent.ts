@@ -1,6 +1,10 @@
-var AnonCredsModule = require('@aries-framework/anoncreds')
+var {AnonCredsModule} = require('@aries-framework/anoncreds')
 var indySdk = require('@aries-framework/indy-sdk')
 var {IndySdkAnonCredsRegistry, IndySdkModule, IndySdkIndyDidRegistrar, IndySdkSovDidResolver, IndySdkIndyDidResolver} = require('@aries-framework/indy-sdk')
+var indySdk = require('indy-sdk')
+
+// var ariesAskar = require('@hyperledger/aries-askar-react-native')
+// var {AskarModule} = require('@aries-framework/askar')
 
 var ariesCore = require('@aries-framework/core')
 var ariesNode = require('@aries-framework/node')
@@ -43,9 +47,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       endpoints: endpoints,
 
       autoAcceptInvitation: true,
-      // logger: new ariesCore.ConsoleLogger(ariesCore.LogLevel.trace),
-      mediatorConnectionsInvite: mediation_url,
-      mediatorPickupStrategy: ariesCore.MediatorPickupStrategy.PickUpV2,
+      //logger: new ariesCore.ConsoleLogger(ariesCore.LogLevel.trace),
       didCommMimeType: ariesCore.DidCommMimeType.V0,
     }
   }
@@ -61,12 +63,21 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     config: agentConfig,
     dependencies: ariesNode.agentDependencies,
     modules: {
-      indySdk: new IndySdkModule({indySdk,
+      indySdk: new IndySdkModule({
+        indySdk,
         networks: [config.ledger]
-    }),
-      anoncreds: new AnonCredsModule({
-        registries: [new IndySdkAnonCredsRegistry()],
       }),
+//       askar: new AskarModule({
+//         ariesAskar,
+//       }),
+      mediationRecipient: new ariesCore.MediationRecipientModule({
+        mediatorInvitationUrl: mediation_url,
+//        mediatorPickupStrategy: ariesCore.MediatorPickupStrategy.PickUpV2,
+        mediatorPickupStrategy: ariesCore.MediatorPickupStrategy.Implicit,
+      }),
+//       anoncreds: new AnonCredsModule({
+//         registries: [new IndySdkAnonCredsRegistry()],
+//       }),
       dids: new ariesCore.DidsModule({
         registrars: [new IndySdkIndyDidRegistrar()],
         resolvers: [new IndySdkSovDidResolver(), new IndySdkIndyDidResolver()],
@@ -91,8 +102,19 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     var def = deferred()
 
     var onConnectedMediation = async (event) => {
-      const mediatorConnection =
-        await agent.mediationRecipient.findDefaultMediatorConnection()
+      let mediatorConnection = null
+      let interval = 100; 
+      for (let i = 0; i < (timeout - interval); i++)
+      {
+        // OutboundWebSocketOpenedEvent occurs before mediation is finalized, so we want to check
+        // for the default mediation connection until it is not null or we hit a timeout
+        // we sleep a small amount between requests just to be kind to our CPU. 
+        await new Promise(r => setTimeout(r, interval))
+        mediatorConnection = await agent.mediationRecipient.findDefaultMediatorConnection()
+        if (mediatorConnection != null) {
+          break;
+        }
+      }
       if (event.payload.connectionId === mediatorConnection?.id) {
         def.resolve(true)
         // we no longer need to listen to the event
@@ -112,7 +134,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     await agent.initialize()
 
     // wait for ws to be configured
-    value = await Promise.race([TimeDelay, def.promise])
+    let value = await Promise.race([TimeDelay, def.promise])
 
     if (!value) {
       // we no longer need to listen to the event in case of failure
@@ -172,7 +194,7 @@ const pingMediator = async (agent) => {
   }
 
   // wait for ping repsonse
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // we no longer need to listen to the event in case of failure
@@ -225,7 +247,7 @@ let receiveInvitation = async (agent, invitationUrl) => {
   )
 
   // wait for connection
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // we no longer need to listen to the event in case of failure
@@ -282,7 +304,7 @@ let receiveCredential = async (agent) => {
   // Nothing for us to do
 
   // wait for credential
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // we no longer need to listen to the event in case of failure
@@ -329,11 +351,11 @@ let presentationExchange = async (agent) => {
   agent.events.on(ariesCore.ProofEventTypes.ProofStateChanged, onRequest)
 
   // Wait for presentation
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // No longer need to listen to the event in case of failure
-    agent.events.off(ariesCore.ProofEventTypes.ProofStateChanged, onCredential)
+    agent.events.off(ariesCore.ProofEventTypes.ProofStateChanged, onRequest)
     throw 'Presentation timeout!'
   }
 }
@@ -369,7 +391,7 @@ let receiveMessage = async (agent) => {
   // Nothing for us to do
 
   // wait for credential
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // we no longer need to listen to the event in case of failure
@@ -387,6 +409,7 @@ const { ConsoleLogger } = require('@aries-framework/core')
 var rl = readline.createInterface(process.stdin, null)
 
 var agent = null
+var agentConfig = null
 
 rl.setPrompt('')
 rl.prompt(false)
@@ -400,7 +423,7 @@ rl.on('line', async (line) => {
     var command = JSON.parse(line)
 
     if (command['cmd'] == 'start') {
-      ;[agent, agentConfig] = await initializeAgent(
+      [agent, agentConfig] = await initializeAgent(
         command['withMediation'],
         command['port'],
         command['agentConfig']
@@ -468,6 +491,7 @@ rl.on('line', async (line) => {
         JSON.stringify({ error: 0, result: 'JSONDecodeError received' }) + '\n'
       )
     }
+    throw e;
     handleError(e)
   }
 })

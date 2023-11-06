@@ -37,8 +37,9 @@ if (process.env.LEDGER == "bcovrin") {
   };
 } else if (process.env.LEDGER == "indicio") {
   ledger = {
-    genesisPath: IndicioTest,
+    genesisPath: "./genesis.txn",
     id: "IndicioTest",
+    indyNamespace: 'indicio',
     isProduction: false,
     connectOnStartup: true,
   };

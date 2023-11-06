@@ -2,24 +2,28 @@
   "name": "load-agent",
   "version": "1.0.0",
   "description": "",
-  "main": "agent.js",
+  "main": "agent.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aries-framework/anoncreds": "^0.4.2",
-    "@aries-framework/core": "^0.4.2",
-    "@aries-framework/indy-sdk": "^0.4.2",
-    "@aries-framework/node": "../aries-framework-javascript/packages/node",
-    "@aries-framework/react-native": "^0.4.2",
+    "@aries-framework/anoncreds": "^0.4.0",
+    "@aries-framework/askar": "^0.4.0",
+    "@aries-framework/core": "^0.4.0",
+    "@aries-framework/indy-sdk": "^0.4.0",
+    "@aries-framework/node": "^0.4.0",
+    "@aries-framework/react-native": "^0.4.0",
+    "@hyperledger/aries-askar-react-native": "^0.1.0",
     "deferred": "^0.7.11",
     "dotenv": "^16.0.3",
+    "indy-sdk": "^1.16.0-dev-1655",
     "indy-sdk-react-native": "^0.3.1",
-    "log-buffer": "^0.0.3"
+    "log-buffer": "^0.0.3",
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
-    "@types/indy-sdk-react-native": "npm:@types/indy-sdk@^1.16.29"
+    "@types/indy-sdk-react-native": "npm:@types/indy-sdk"
   }
 }

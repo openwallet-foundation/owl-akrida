@@ -105,7 +105,7 @@ class CustomClient:
 
             self.errors = 0
             self.agent = subprocess.Popen(
-                ["node", "agent.js"],
+                ["ts-node", "agent.js"],
                 bufsize=0,
                 universal_newlines=True,
                 stdout=subprocess.PIPE,

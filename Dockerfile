@@ -16,6 +16,8 @@ RUN apt-get update -y && apt-get install -y nodejs
 
 RUN npm install --global yarn
 
+RUN yarn global add ts-node typescript
+
 RUN apt-get install -y libsodium-dev libzmq3-dev
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rust.sh && sh -- rust.sh -y
