@@ -23,21 +23,24 @@ let ledger = {};
 
 if (process.env.LEDGER == "bcovrin") {
   ledger = {
-    genesisTransactions: BCovrinTest,
+    genesisPath: BCovrinTest,
     id: "BCovrinTest",
     isProduction: false,
+    connectOnStartup: true,
   };
 } else if (process.env.LEDGER == "candy") {
   ledger = {
-    genesisTransactions: CANdy,
+    genesisPath: CANdy,
     id: "CANdyDev",
     isProduction: false,
+    connectOnStartup: true,
   };
 } else if (process.env.LEDGER == "indicio") {
   ledger = {
-    genesisTransactions: IndicioTest,
+    genesisPath: IndicioTest,
     id: "IndicioTest",
     isProduction: false,
+    connectOnStartup: true,
   };
 }
 

@@ -9,10 +9,17 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aries-framework/core": "../aries-framework-javascript/packages/core",
+    "@aries-framework/anoncreds": "^0.4.2",
+    "@aries-framework/core": "^0.4.2",
+    "@aries-framework/indy-sdk": "^0.4.2",
     "@aries-framework/node": "../aries-framework-javascript/packages/node",
+    "@aries-framework/react-native": "^0.4.2",
     "deferred": "^0.7.11",
     "dotenv": "^16.0.3",
+    "indy-sdk-react-native": "^0.3.1",
     "log-buffer": "^0.0.3"
+  },
+  "devDependencies": {
+    "@types/indy-sdk-react-native": "npm:@types/indy-sdk@^1.16.29"
   }
 }

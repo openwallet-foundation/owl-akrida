@@ -40,6 +40,7 @@ class UserBehaviour(SequentialTaskSet):
 
     @task
     def msg_client(self):
+        # I think this should be @id....
         self.client.msg_client(self.invite['connection_id'])
 
 class MediatorMsg(CustomLocust):

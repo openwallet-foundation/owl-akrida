@@ -1,3 +1,7 @@
+var AnonCredsModule = require('@aries-framework/anoncreds')
+var indySdk = require('@aries-framework/indy-sdk')
+var {IndySdkAnonCredsRegistry, IndySdkModule, IndySdkIndyDidRegistrar, IndySdkSovDidResolver, IndySdkIndyDidResolver} = require('@aries-framework/indy-sdk')
+
 var ariesCore = require('@aries-framework/core')
 var ariesNode = require('@aries-framework/node')
 
@@ -30,7 +34,6 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
 
   if (!agentConfig || agentConfig === null || agentConfig.length === 0) {
     agentConfig = {
-      indyLedgers: [config.ledger],
       label: generateString(14),
       walletConfig: {
         id: generateString(32),
@@ -43,6 +46,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       // logger: new ariesCore.ConsoleLogger(ariesCore.LogLevel.trace),
       mediatorConnectionsInvite: mediation_url,
       mediatorPickupStrategy: ariesCore.MediatorPickupStrategy.PickUpV2,
+      didCommMimeType: ariesCore.DidCommMimeType.V0,
     }
   }
 
@@ -56,6 +60,18 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
   const agent = new ariesCore.Agent({
     config: agentConfig,
     dependencies: ariesNode.agentDependencies,
+    modules: {
+      indySdk: new IndySdkModule({indySdk,
+        networks: [config.ledger]
+    }),
+      anoncreds: new AnonCredsModule({
+        registries: [new IndySdkAnonCredsRegistry()],
+      }),
+      dids: new ariesCore.DidsModule({
+        registrars: [new IndySdkIndyDidRegistrar()],
+        resolvers: [new IndySdkSovDidResolver(), new IndySdkIndyDidResolver()],
+      })
+    }
   })
 
   // Register a simple `WebSocket` outbound transport
