@@ -19,7 +19,7 @@ services:
     command: >
       start
         --arg-file ./configs/issuer.yml
-        --endpoint http://${ISSUER}:8151
+        --endpoint http://${ISSUER}:80
         --genesis-url ${ACAPY_GENESIS_URL}
         --log-level debug
     healthcheck:
