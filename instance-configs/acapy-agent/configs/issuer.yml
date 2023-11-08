@@ -43,5 +43,5 @@ wallet-storage-type: "postgres_storage"
 
 # Replace Internal IP
 plugin-config-value:
-  - redis_cache.connection="redis://10.138.0.27:6379/0"
+  - redis_cache.connection="redis://{INTERNAL_IP}/0"
   - redis_cache.max_connections=90
