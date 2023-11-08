@@ -6,11 +6,11 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 acapy-cache-redis = {git = "https://github.com/Indicio-tech/aries-acapy-cache-redis.git"}
 aries-askar = "^0.2.9"
 indy-vdr = "^0.3.4"
-aries-cloudagent = {version = "0.7.5", extras = ["askar", "bbs"]}
+aries-cloudagent = {version = "0.10.4", extras = ["askar", "bbs"]}
 
 
 [build-system]
