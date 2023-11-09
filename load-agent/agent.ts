@@ -1,24 +1,25 @@
-var {
+import {
   AnonCredsModule, 
   LegacyIndyCredentialFormatService,
   LegacyIndyProofFormatService,
   V1CredentialProtocol, 
   V1ProofProtocol
-} = require('@aries-framework/anoncreds')
-var indySdk = require('@aries-framework/indy-sdk')
-var {
+} from '@aries-framework/anoncreds';
+
+import {
   IndySdkAnonCredsRegistry, 
   IndySdkModule, 
   IndySdkIndyDidRegistrar, 
   IndySdkSovDidResolver, 
   IndySdkIndyDidResolver
-} = require('@aries-framework/indy-sdk')
+} from '@aries-framework/indy-sdk'
+
 var indySdk = require('indy-sdk')
 
 // var ariesAskar = require('@hyperledger/aries-askar-react-native')
 // var {AskarModule} = require('@aries-framework/askar')
 
-var {
+import {
   Agent, 
   BasicMessageEventTypes,
   ConnectionEventTypes,
@@ -41,8 +42,12 @@ var {
   V2CredentialProtocol, 
   V2ProofProtocol, 
   WsOutboundTransport
-} = require('@aries-framework/core')
-var ariesNode = require('@aries-framework/node')
+} from '@aries-framework/core';
+
+import { 
+  agentDependencies, 
+  HttpInboundTransport 
+} from '@aries-framework/node';
 
 var config = require('./config.js')
 
@@ -71,7 +76,6 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
 
   let mediation_url = config.mediation_url
   let endpoints = ['http://' + config.agent_ip + ':' + port]
-  let changeConfig = false
 
   if (!agentConfig || agentConfig === null || agentConfig.length === 0) {
     agentConfig = {
@@ -89,57 +93,60 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     }
   }
 
+  let modules = {
+    indySdk: new IndySdkModule({
+      indySdk,
+      networks: [config.ledger]
+    }),
+//       askar: new AskarModule({
+//         ariesAskar,
+//       }),
+    mediationRecipient: new MediationRecipientModule({
+      mediatorInvitationUrl: mediation_url,
+      mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
+//        mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
+    }),
+    anoncreds: new AnonCredsModule({
+      registries: [new IndySdkAnonCredsRegistry()],
+    }),
+    proofs: new ProofsModule({
+      proofProtocols: [
+        new V1ProofProtocol({
+          indyProofFormat: legacyIndyProofFormat,
+        }),
+        new V2ProofProtocol({
+          proofFormats: [legacyIndyProofFormat],
+        }),
+      ],
+    }),
+    credentials: new CredentialsModule({
+      credentialProtocols: [
+        new V1CredentialProtocol({
+          indyCredentialFormat: legacyIndyCredentialFormat,
+        }),
+        new V2CredentialProtocol({
+          credentialFormats: [legacyIndyCredentialFormat],
+        }),
+      ],
+    }),
+    dids: new DidsModule({
+      registrars: [new IndySdkIndyDidRegistrar()],
+      resolvers: [new IndySdkSovDidResolver(), new IndySdkIndyDidResolver()],
+    })
+  }
+
+  // configure mediator or endpoints
   if (withMediation) {
     delete agentConfig['endpoints']
   } else {
-    delete agentConfig['mediatorConnectionsInvite']
+    delete modules['mediationRecipient']
   }
 
   // A new instance of an agent is created here
   const agent = new Agent({
     config: agentConfig,
-    dependencies: ariesNode.agentDependencies,
-    modules: {
-      indySdk: new IndySdkModule({
-        indySdk,
-        networks: [config.ledger]
-      }),
-//       askar: new AskarModule({
-//         ariesAskar,
-//       }),
-      mediationRecipient: new MediationRecipientModule({
-        mediatorInvitationUrl: mediation_url,
-        mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
-//        mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
-      }),
-      anoncreds: new AnonCredsModule({
-        registries: [new IndySdkAnonCredsRegistry()],
-      }),
-      proofs: new ProofsModule({
-        proofProtocols: [
-          new V1ProofProtocol({
-            indyProofFormat: legacyIndyProofFormat,
-          }),
-          new V2ProofProtocol({
-            proofFormats: [legacyIndyProofFormat],
-          }),
-        ],
-      }),
-    credentials: new CredentialsModule({
-        credentialProtocols: [
-          new V1CredentialProtocol({
-            indyCredentialFormat: legacyIndyCredentialFormat,
-          }),
-          new V2CredentialProtocol({
-            credentialFormats: [legacyIndyCredentialFormat],
-          }),
-        ],
-      }),
-      dids: new DidsModule({
-        registrars: [new IndySdkIndyDidRegistrar()],
-        resolvers: [new IndySdkSovDidResolver(), new IndySdkIndyDidResolver()],
-      })
-    }
+    dependencies: agentDependencies,
+    modules: modules
   })
 
   // Register a simple `WebSocket` outbound transport
@@ -150,7 +157,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
 
   if (withMediation) {
     // wait for medation to be configured
-    let timeout = 2 * 60000 // two minutes
+    let timeout = config.verified_timeout_seconds * 1000
 
     const TimeDelay = new Promise((resolve, reject) => {
       setTimeout(resolve, timeout, false)
@@ -203,7 +210,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     }
   } else {
     agent.registerInboundTransport(
-      new ariesNode.HttpInboundTransport({ port: port })
+      new HttpInboundTransport({ port: port })
     )
     await agent.initialize()
   }
@@ -215,7 +222,7 @@ const pingMediator = async (agent) => {
   // Find mediator
 
   // wait for the ping
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
 
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
@@ -265,7 +272,7 @@ const pingMediator = async (agent) => {
 
 let receiveInvitation = async (agent, invitationUrl) => {
   // wait for the connection
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
   })
@@ -320,7 +327,7 @@ let receiveInvitation = async (agent, invitationUrl) => {
 
 let receiveCredential = async (agent) => {
   // wait for the ping
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
 
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
@@ -375,7 +382,7 @@ let receiveCredential = async (agent) => {
 
 let presentationExchange = async (agent) => {
   // wait for the ping
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
 
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
@@ -419,7 +426,7 @@ let presentationExchange = async (agent) => {
 
 let receiveMessage = async (agent) => {
   // wait for the ping
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
 
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
@@ -461,7 +468,6 @@ let receiveMessage = async (agent) => {
 }
 
 var readline = require('readline')
-// const { ConsoleLogger } = require('@aries-framework/core')
 
 var rl = readline.createInterface(process.stdin, null)
 
@@ -548,7 +554,6 @@ rl.on('line', async (line) => {
         JSON.stringify({ error: 0, result: 'JSONDecodeError received' }) + '\n'
       )
     }
-    throw e;
     handleError(e)
   }
 })
@@ -557,15 +562,3 @@ process.once('SIGTERM', function (code) {
   process.stderr.write('SIGTERM received...' + '\n')
   process.exit(1)
 })
-
-// Is there a better way to handle this.
-// TODO it is recommended to shutdown the agent after an error like this...
-// process
-//   .on("unhandledRejection", (reason, p) => {
-//     handleError(reason);
-//     process.exit(1);
-//   })
-//   .on("uncaughtException", (err) => {
-//     handleError(err);
-//     process.exit(1);
-//   });

@@ -47,4 +47,5 @@ if (process.env.LEDGER == "bcovrin") {
 
 exports.mediation_url = process.env.MEDIATION_URL;
 exports.agent_ip = process.env.AGENT_IP;
+exports.verified_timeout_seconds = (process.env.VERIFIED_TIMEOUT_SECONDS || 120)
 exports.ledger = ledger;

@@ -25,17 +25,8 @@ ToDo:
 ## Running load tests
 ```
 # Clone this repo
-git clone https://github.com/hyperledger/aries-mediator-service
-cd aries-mediator-service
-
-# Start in the load-testing folder
-cd load-testing
-
-# A specific fork of AFJ is currently used to support listening to trustping events. This pull request was added to AFJ, and future versions may use the standard AFJ package.
-git clone https://github.com/reflectivedevelopment/aries-framework-javascript.git
-cd aries-framework-javascript
-git checkout feature/add_trustping_events
-cd ..
+git clone URL aries-akirda
+cd aries-akirda
 
 # Copy the sample.env to .env and edit it according to your needs -- at least the MEDIATION URL
 cp sample.env .env

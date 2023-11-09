@@ -504,14 +504,6 @@ git clone git@github.com:Indicio-tech/aries-akrida.git
 Go ahead and navigate into this repo by doing `cd aries-akrida`.
 Before we go ahead and populate our `.env` file, we'll need to locally clone down a specific version for AFJ for our clients. (For motiviation on why we're doing this, see our design document. :) We use AFJ to simulate our clients here.) If you haven't already, `cd aries-akrida`.
 
-```
-# A specific fork of AFJ is currently used to support listening to trustping events. This pull request was added to AFJ, and future versions may use the standard AFJ package.
-git clone https://github.com/reflectivedevelopment/aries-framework-javascript.git
-cd aries-framework-javascript
-git checkout feature/add_trustping_events
-cd ../
-```
-
 Now we'll take care of populating the `.env` file. However, we will need some information from AWS in order to fill it out.
 
 Besides AWS, if you have your own mediator, this would be the time to populate the `.env` with your mediation url. It's also important, at this step, to know whether it supports version 2 of the pickup protocol (recommended to ask, or just wait for errors to pop up).
