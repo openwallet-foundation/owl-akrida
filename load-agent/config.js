@@ -6,7 +6,7 @@ let ledger = {};
 
 if (process.env.LEDGER == "bcovrin") {
   ledger = {
-    genesisPath: BCovrinTest,
+    genesisPath: "./networks/BCovrintest.txn",
     id: "BCovrinTest",
     indyNamespace: 'bcovrin:test',
     isProduction: false,
@@ -14,7 +14,7 @@ if (process.env.LEDGER == "bcovrin") {
   };
 } else if (process.env.LEDGER == "candy") {
   ledger = {
-    genesisPath: CANdy,
+    genesisPath: "./networks/CANdy.txn",
     id: "CANdyDev",
     indyNamespace: 'did:indy:candy:dev',
     isProduction: false,
@@ -22,7 +22,7 @@ if (process.env.LEDGER == "bcovrin") {
   };
 } else if (process.env.LEDGER == "indicio") {
   ledger = {
-    genesisPath: "./network/indicio-test.txn",
+    genesisPath: "./networks/indicio-test.txn",
     id: "IndicioTest",
     indyNamespace: 'did:indy:indicio:test',
     isProduction: false,

@@ -16,8 +16,8 @@ import {
 
 var indySdk = require('indy-sdk')
 
-// var ariesAskar = require('@hyperledger/aries-askar-react-native')
-// var {AskarModule} = require('@aries-framework/askar')
+// import { ariesAskar } from '@hyperledger/aries-askar-react-native'
+// import { AskarModule } from '@aries-framework/askar'
 
 import {
   Agent, 
@@ -60,7 +60,7 @@ const legacyIndyCredentialFormat = new LegacyIndyCredentialFormatService()
 const legacyIndyProofFormat = new LegacyIndyProofFormatService()
 
 function generateString(length) {
-  let result = ' '
+  let result = ''
   const charactersLength = characters.length
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength))
@@ -98,9 +98,9 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       indySdk,
       networks: [config.ledger]
     }),
-//       askar: new AskarModule({
-//         ariesAskar,
-//       }),
+    // askar: new AskarModule({
+    //   ariesAskar,
+    // }),
     mediationRecipient: new MediationRecipientModule({
       mediatorInvitationUrl: mediation_url,
       mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
