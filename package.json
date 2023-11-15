@@ -1,6 +1,6 @@
 {
   "name": "aries-akrida",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The Aries Akrida is designed to load test various Hyperledger Aries deployments",
   "main": "index.js",
   "directories": {
