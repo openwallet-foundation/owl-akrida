@@ -1,5 +1,53 @@
-var ariesCore = require('@aries-framework/core')
-var ariesNode = require('@aries-framework/node')
+import {
+  AnonCredsModule, 
+  LegacyIndyCredentialFormatService,
+  LegacyIndyProofFormatService,
+  V1CredentialProtocol, 
+  V1ProofProtocol
+} from '@aries-framework/anoncreds';
+
+import {
+  IndySdkAnonCredsRegistry, 
+  IndySdkModule, 
+  IndySdkIndyDidRegistrar, 
+  IndySdkSovDidResolver, 
+  IndySdkIndyDidResolver
+} from '@aries-framework/indy-sdk'
+
+var indySdk = require('indy-sdk')
+
+// import { ariesAskar } from '@hyperledger/aries-askar-react-native'
+// import { AskarModule } from '@aries-framework/askar'
+
+import {
+  Agent, 
+  BasicMessageEventTypes,
+  ConnectionEventTypes,
+  ConsoleLogger, 
+  CredentialEventTypes,
+  CredentialsModule, 
+  CredentialState,
+  DidCommMimeType, 
+  DidExchangeState,
+  DidsModule, 
+  HttpOutboundTransport,
+  LogLevel, 
+  MediationRecipientModule, 
+  MediatorPickupStrategy, 
+  ProofEventTypes,
+  ProofsModule, 
+  ProofState,
+  TransportEventTypes,
+  TrustPingEventTypes,
+  V2CredentialProtocol, 
+  V2ProofProtocol, 
+  WsOutboundTransport
+} from '@aries-framework/core';
+
+import { 
+  agentDependencies, 
+  HttpInboundTransport 
+} from '@aries-framework/node';
 
 var config = require('./config.js')
 
@@ -8,9 +56,11 @@ var process = require('process')
 
 const characters =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+const legacyIndyCredentialFormat = new LegacyIndyCredentialFormatService()
+const legacyIndyProofFormat = new LegacyIndyProofFormatService()
 
 function generateString(length) {
-  let result = ' '
+  let result = ''
   const charactersLength = characters.length
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength))
@@ -26,11 +76,9 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
 
   let mediation_url = config.mediation_url
   let endpoints = ['http://' + config.agent_ip + ':' + port]
-  let changeConfig = false
 
   if (!agentConfig || agentConfig === null || agentConfig.length === 0) {
     agentConfig = {
-      indyLedgers: [config.ledger],
       label: generateString(14),
       walletConfig: {
         id: generateString(32),
@@ -40,33 +88,76 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       endpoints: endpoints,
 
       autoAcceptInvitation: true,
-      // logger: new ariesCore.ConsoleLogger(ariesCore.LogLevel.trace),
-      mediatorConnectionsInvite: mediation_url,
-      mediatorPickupStrategy: ariesCore.MediatorPickupStrategy.PickUpV2,
+      // logger: new ConsoleLogger(LogLevel.trace),
+      didCommMimeType: DidCommMimeType.V0,
     }
   }
 
+  let modules = {
+    indySdk: new IndySdkModule({
+      indySdk,
+      networks: [config.ledger]
+    }),
+    // askar: new AskarModule({
+    //   ariesAskar,
+    // }),
+    mediationRecipient: new MediationRecipientModule({
+      mediatorInvitationUrl: mediation_url,
+      mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
+//        mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
+    }),
+    anoncreds: new AnonCredsModule({
+      registries: [new IndySdkAnonCredsRegistry()],
+    }),
+    proofs: new ProofsModule({
+      proofProtocols: [
+        new V1ProofProtocol({
+          indyProofFormat: legacyIndyProofFormat,
+        }),
+        new V2ProofProtocol({
+          proofFormats: [legacyIndyProofFormat],
+        }),
+      ],
+    }),
+    credentials: new CredentialsModule({
+      credentialProtocols: [
+        new V1CredentialProtocol({
+          indyCredentialFormat: legacyIndyCredentialFormat,
+        }),
+        new V2CredentialProtocol({
+          credentialFormats: [legacyIndyCredentialFormat],
+        }),
+      ],
+    }),
+    dids: new DidsModule({
+      registrars: [new IndySdkIndyDidRegistrar()],
+      resolvers: [new IndySdkSovDidResolver(), new IndySdkIndyDidResolver()],
+    })
+  }
+
+  // configure mediator or endpoints
   if (withMediation) {
     delete agentConfig['endpoints']
   } else {
-    delete agentConfig['mediatorConnectionsInvite']
+    delete modules['mediationRecipient']
   }
 
   // A new instance of an agent is created here
-  const agent = new ariesCore.Agent({
+  const agent = new Agent({
     config: agentConfig,
-    dependencies: ariesNode.agentDependencies,
+    dependencies: agentDependencies,
+    modules: modules
   })
 
   // Register a simple `WebSocket` outbound transport
-  agent.registerOutboundTransport(new ariesCore.WsOutboundTransport())
+  agent.registerOutboundTransport(new WsOutboundTransport())
 
   // Register a simple `Http` outbound transport
-  agent.registerOutboundTransport(new ariesCore.HttpOutboundTransport())
+  agent.registerOutboundTransport(new HttpOutboundTransport())
 
   if (withMediation) {
     // wait for medation to be configured
-    let timeout = 2 * 60000 // two minutes
+    let timeout = config.verified_timeout_seconds * 1000
 
     const TimeDelay = new Promise((resolve, reject) => {
       setTimeout(resolve, timeout, false)
@@ -75,20 +166,31 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     var def = deferred()
 
     var onConnectedMediation = async (event) => {
-      const mediatorConnection =
-        await agent.mediationRecipient.findDefaultMediatorConnection()
+      let mediatorConnection = null
+      let interval = 100; 
+      for (let i = 0; i < (timeout - interval); i++)
+      {
+        // OutboundWebSocketOpenedEvent occurs before mediation is finalized, so we want to check
+        // for the default mediation connection until it is not null or we hit a timeout
+        // we sleep a small amount between requests just to be kind to our CPU. 
+        await new Promise(r => setTimeout(r, interval))
+        mediatorConnection = await agent.mediationRecipient.findDefaultMediatorConnection()
+        if (mediatorConnection != null) {
+          break;
+        }
+      }
       if (event.payload.connectionId === mediatorConnection?.id) {
         def.resolve(true)
         // we no longer need to listen to the event
         agent.events.off(
-          ariesCore.TransportEventTypes.OutboundWebSocketOpenedEvent,
+          TransportEventTypes.OutboundWebSocketOpenedEvent,
           onConnectedMediation
         )
       }
     }
 
     agent.events.on(
-      ariesCore.TransportEventTypes.OutboundWebSocketOpenedEvent,
+      TransportEventTypes.OutboundWebSocketOpenedEvent,
       onConnectedMediation
     )
 
@@ -96,19 +198,19 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     await agent.initialize()
 
     // wait for ws to be configured
-    value = await Promise.race([TimeDelay, def.promise])
+    let value = await Promise.race([TimeDelay, def.promise])
 
     if (!value) {
       // we no longer need to listen to the event in case of failure
       agent.events.off(
-        ariesCore.TransportEventTypes.OutboundWebSocketOpenedEvent,
+        TransportEventTypes.OutboundWebSocketOpenedEvent,
         onConnectedMediation
       )
       throw 'Mediator timeout!'
     }
   } else {
     agent.registerInboundTransport(
-      new ariesNode.HttpInboundTransport({ port: port })
+      new HttpInboundTransport({ port: port })
     )
     await agent.initialize()
   }
@@ -120,7 +222,7 @@ const pingMediator = async (agent) => {
   // Find mediator
 
   // wait for the ping
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
 
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
@@ -134,7 +236,7 @@ const pingMediator = async (agent) => {
     if (event.payload.connectionRecord.id === mediatorConnection?.id) {
       // we no longer need to listen to the event
       agent.events.off(
-        ariesCore.TrustPingEventTypes.TrustPingResponseReceivedEvent,
+        TrustPingEventTypes.TrustPingResponseReceivedEvent,
         onPingResponse
       )
 
@@ -143,7 +245,7 @@ const pingMediator = async (agent) => {
   }
 
   agent.events.on(
-    ariesCore.TrustPingEventTypes.TrustPingResponseReceivedEvent,
+    TrustPingEventTypes.TrustPingResponseReceivedEvent,
     onPingResponse
   )
 
@@ -156,12 +258,12 @@ const pingMediator = async (agent) => {
   }
 
   // wait for ping repsonse
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // we no longer need to listen to the event in case of failure
     agent.events.off(
-      ariesCore.TrustPingEventTypes.TrustPingResponseReceivedEvent,
+      TrustPingEventTypes.TrustPingResponseReceivedEvent,
       onPingResponse
     )
     throw 'Mediator timeout!'
@@ -170,7 +272,7 @@ const pingMediator = async (agent) => {
 
 let receiveInvitation = async (agent, invitationUrl) => {
   // wait for the connection
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
   })
@@ -181,7 +283,7 @@ let receiveInvitation = async (agent, invitationUrl) => {
     {
       let payload = event.payload
       if (
-        payload.connectionRecord.state === ariesCore.DidExchangeState.Completed
+        payload.connectionRecord.state === DidExchangeState.Completed
       ) {
         // the connection is now ready for usage in other protocols!
         // console.log(`Connection for out-of-band id ${payload.connectionRecord.outOfBandId} completed`)
@@ -190,7 +292,7 @@ let receiveInvitation = async (agent, invitationUrl) => {
         // anything is possible
 
         agent.events.off(
-          ariesCore.ConnectionEventTypes.ConnectionStateChanged,
+          ConnectionEventTypes.ConnectionStateChanged,
           onConnection
         )
 
@@ -200,7 +302,7 @@ let receiveInvitation = async (agent, invitationUrl) => {
   }
 
   agent.events.on(
-    ariesCore.ConnectionEventTypes.ConnectionStateChanged,
+    ConnectionEventTypes.ConnectionStateChanged,
     onConnection
   )
 
@@ -209,12 +311,12 @@ let receiveInvitation = async (agent, invitationUrl) => {
   )
 
   // wait for connection
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // we no longer need to listen to the event in case of failure
     agent.events.off(
-      ariesCore.ConnectionEventTypes.ConnectionStateChanged,
+      ConnectionEventTypes.ConnectionStateChanged,
       onConnection
     )
     throw 'Connection timeout!'
@@ -225,7 +327,7 @@ let receiveInvitation = async (agent, invitationUrl) => {
 
 let receiveCredential = async (agent) => {
   // wait for the ping
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
 
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
@@ -237,19 +339,19 @@ let receiveCredential = async (agent) => {
     let payload = event.payload
 
     switch (payload.credentialRecord.state) {
-      case ariesCore.CredentialState.OfferReceived:
+      case CredentialState.OfferReceived:
         //console.log('received a credential')
         // custom logic here
         await agent.credentials.acceptOffer({
           credentialRecordId: payload.credentialRecord.id,
         })
         break
-      case ariesCore.CredentialState.CredentialReceived:
+      case CredentialState.CredentialReceived:
         //console.log(`Credential for credential id ${payload.credentialRecord.id} is accepted`)
         // For demo purposes we exit the program here.
 
         agent.events.off(
-          ariesCore.CredentialEventTypes.CredentialStateChanged,
+          CredentialEventTypes.CredentialStateChanged,
           onCredential
         )
 
@@ -259,19 +361,19 @@ let receiveCredential = async (agent) => {
   }
 
   agent.events.on(
-    ariesCore.CredentialEventTypes.CredentialStateChanged,
+    CredentialEventTypes.CredentialStateChanged,
     onCredential
   )
 
   // Nothing for us to do
 
   // wait for credential
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // we no longer need to listen to the event in case of failure
     agent.events.off(
-      ariesCore.CredentialEventTypes.CredentialStateChanged,
+      CredentialEventTypes.CredentialStateChanged,
       onCredential
     )
     throw 'Credential timeout!'
@@ -280,7 +382,7 @@ let receiveCredential = async (agent) => {
 
 let presentationExchange = async (agent) => {
   // wait for the ping
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
 
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
@@ -292,39 +394,39 @@ let presentationExchange = async (agent) => {
     let payload = event.payload
 
     switch (payload.proofRecord.state) {
-      case ariesCore.ProofState.RequestReceived:
+      case ProofState.RequestReceived:
         const requestedCredentials =
-          await agent.proofs.autoSelectCredentialsForProofRequest({
+          await agent.proofs.selectCredentialsForRequest({
             proofRecordId: payload.proofRecord.id,
-            config: {
-              filterByPresentationPreview: true,
-            },
+            // config: {
+            //   filterByPresentationPreview: true,
+            // },
           })
         await agent.proofs.acceptRequest({
           proofRecordId: payload.proofRecord.id,
           proofFormats: requestedCredentials.proofFormats,
         })
-        agent.events.off(ariesCore.ProofEventTypes.ProofStateChanged, onRequest)
+        agent.events.off(ProofEventTypes.ProofStateChanged, onRequest)
         def.resolve(true)
         break
     }
   }
 
-  agent.events.on(ariesCore.ProofEventTypes.ProofStateChanged, onRequest)
+  agent.events.on(ProofEventTypes.ProofStateChanged, onRequest)
 
   // Wait for presentation
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // No longer need to listen to the event in case of failure
-    agent.events.off(ariesCore.ProofEventTypes.ProofStateChanged, onCredential)
+    agent.events.off(ProofEventTypes.ProofStateChanged, onRequest)
     throw 'Presentation timeout!'
   }
 }
 
 let receiveMessage = async (agent) => {
   // wait for the ping
-  let timeout = 2 * 60000 // two minutes
+  let timeout = config.verified_timeout_seconds * 1000
 
   const TimeDelay = new Promise((resolve, reject) => {
     setTimeout(resolve, timeout, false)
@@ -338,7 +440,7 @@ let receiveMessage = async (agent) => {
     //        console.error(payload)
 
     agent.events.off(
-      ariesCore.BasicMessageEventTypes.BasicMessageStateChanged,
+      BasicMessageEventTypes.BasicMessageStateChanged,
       onMessage
     )
 
@@ -346,19 +448,19 @@ let receiveMessage = async (agent) => {
   }
 
   agent.events.on(
-    ariesCore.BasicMessageEventTypes.BasicMessageStateChanged,
+    BasicMessageEventTypes.BasicMessageStateChanged,
     onMessage
   )
 
   // Nothing for us to do
 
   // wait for credential
-  value = await Promise.race([TimeDelay, def.promise])
+  let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
     // we no longer need to listen to the event in case of failure
     agent.events.off(
-      ariesCore.BasicMessageEventTypes.BasicMessageStateChanged,
+      BasicMessageEventTypes.BasicMessageStateChanged,
       onMessage
     )
     throw 'Message timeout!'
@@ -366,11 +468,11 @@ let receiveMessage = async (agent) => {
 }
 
 var readline = require('readline')
-const { ConsoleLogger } = require('@aries-framework/core')
 
 var rl = readline.createInterface(process.stdin, null)
 
 var agent = null
+var agentConfig = null
 
 rl.setPrompt('')
 rl.prompt(false)
@@ -384,7 +486,7 @@ rl.on('line', async (line) => {
     var command = JSON.parse(line)
 
     if (command['cmd'] == 'start') {
-      ;[agent, agentConfig] = await initializeAgent(
+      [agent, agentConfig] = await initializeAgent(
         command['withMediation'],
         command['port'],
         command['agentConfig']
@@ -460,15 +562,3 @@ process.once('SIGTERM', function (code) {
   process.stderr.write('SIGTERM received...' + '\n')
   process.exit(1)
 })
-
-// Is there a better way to handle this.
-// TODO it is recommended to shutdown the agent after an error like this...
-// process
-//   .on("unhandledRejection", (reason, p) => {
-//     handleError(reason);
-//     process.exit(1);
-//   })
-//   .on("uncaughtException", (err) => {
-//     handleError(err);
-//     process.exit(1);
-//   });

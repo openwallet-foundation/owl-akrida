@@ -16,6 +16,8 @@ RUN apt-get update -y && apt-get install -y nodejs
 
 RUN npm install --global yarn
 
+RUN yarn global add ts-node typescript
+
 RUN apt-get install -y libsodium-dev libzmq3-dev
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rust.sh && sh -- rust.sh -y
@@ -49,15 +51,6 @@ FROM base as release
 ARG LOADDIR
 # Set working directory to function root directory
 WORKDIR ${LOADDIR}
-
-# TODO remove these changes when AFJ accepts merge
-ADD ./aries-framework-javascript aries-framework-javascript
-
-RUN cd aries-framework-javascript && yarn install
-
-RUN cd aries-framework-javascript/packages/core && yarn install && npm run build
-
-RUN cd aries-framework-javascript/packages/node && yarn install && npm run build
 
 ADD ./load-agent load-agent
 

@@ -105,7 +105,7 @@ class CustomClient:
 
             self.errors = 0
             self.agent = subprocess.Popen(
-                ["node", "agent.js"],
+                ["ts-node", "agent.ts"],
                 bufsize=0,
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
@@ -242,6 +242,16 @@ class CustomClient:
     def issuer_getinvite(self):
         headers = json.loads(os.getenv("ISSUER_HEADERS"))
         headers["Content-Type"] = "application/json"
+        # r = requests.post(
+        #     os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
+        #     json={
+        #         "metadata": {}, 
+        #         "handshake_protocols": ["https://didcomm.org/didexchange/1.0"],
+        #         "use_public_did": False
+        #     },
+        #     headers=headers
+        # )
+        #print("r is ", r, " and r.json is ", r.json())
         r = requests.post(
             os.getenv("ISSUER_URL") + "/connections/create-invitation?auto_accept=true",
             json={"metadata": {}, "my_label": "Test"},
@@ -340,6 +350,7 @@ class CustomClient:
         r = requests.post(
             os.getenv("ISSUER_URL") + "/present-proof/send-request",
             json={
+                "auto_remove": False,
                 "auto_verify": True,
                 "comment": "Performance Verification",
                 "connection_id": connection_id,
