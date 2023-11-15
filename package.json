@@ -1,15 +1,15 @@
 {
   "name": "aries-akrida",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The Aries Akrida is designed to load test various Hyperledger Aries deployments",
   "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "release:major": "changelog -M && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version major && git push origin && git push origin --tags",
-    "release:minor": "changelog -m && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version minor && git push origin && git push origin --tags",
-    "release:patch": "changelog -p && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version patch && git push origin && git push origin --tags",
+    "release:major": "changelog -M && git add CHANGELOG.md && git commit -s -m 'updated CHANGELOG.md' && npm version --no-git-tag-version major && cd load-agent && npm version --no-git-tag-version major",
+    "release:minor": "changelog -m && git add CHANGELOG.md && git commit -s -m 'updated CHANGELOG.md' && npm version --no-git-tag-version minor && cd load-agent && npm --no-git-tag-version version minor",
+    "release:patch": "changelog -p && git add CHANGELOG.md && git commit -s -m 'updated CHANGELOG.md' && npm version --no-git-tag-version patch && cd load-agent && npm version --no-git-tag-version patch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
