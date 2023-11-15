@@ -52,15 +52,6 @@ ARG LOADDIR
 # Set working directory to function root directory
 WORKDIR ${LOADDIR}
 
-# TODO remove these changes when AFJ accepts merge
-ADD ./aries-framework-javascript aries-framework-javascript
-
-RUN cd aries-framework-javascript && yarn install
-
-RUN cd aries-framework-javascript/packages/core && yarn install && npm run build
-
-RUN cd aries-framework-javascript/packages/node && yarn install && npm run build
-
 ADD ./load-agent load-agent
 
 WORKDIR ${LOADDIR}/load-agent
