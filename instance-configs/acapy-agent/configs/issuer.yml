@@ -12,7 +12,8 @@ outbound-transport: http
 emit-new-didcomm-prefix: true
 
 # Admin
-admin-insecure-mode: true
+# admin-insecure-mode: true
+admin-api-key: insertAPIKeyHere
 
 # Connections
 debug-connections: true
