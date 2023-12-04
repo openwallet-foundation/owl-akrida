@@ -12,6 +12,7 @@ services:
       - "8150:8150"
       - "8151:8151"
     environment:
+      ACAPY_ADMIN_API_KEY: ${ACAPY_ADMIN_API_KEY}
       ACAPY_WALLET_STORAGE_CONFIG: '{"url":"${DATABASE}:5432","max_connections":5}'
       ACAPY_GENESIS_URL: ${ACAPY_GENESIS_URL}
       ACAPY_WALLET_STORAGE_CREDS: '{"account":"${ACCOUNT}","password":"${PASSWORD}","admin_account":"${ADMIN_ACCOUNT}","admin_password":"${ADMIN_PASSWORD}"}'
