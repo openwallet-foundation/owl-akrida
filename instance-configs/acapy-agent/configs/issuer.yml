@@ -13,7 +13,7 @@ emit-new-didcomm-prefix: true
 
 # Admin
 # admin-insecure-mode: true
-admin-api-key: insertAPIKeyHere
+admin-api-key: ${ACAPY_ADMIN_API_KEY}
 
 # Connections
 debug-connections: true
