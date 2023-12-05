@@ -10,7 +10,7 @@ services:
       - ./configs:/home/indy/configs:ro,z
     ports:
       - "8150:8150"
-      - "${EXPOSED_PORT}:8151"
+      - "8151:8151"
     environment:
       ACAPY_WALLET_STORAGE_CONFIG: '{"url":"${DATABASE}:5432","max_connections":5}'
       ACAPY_GENESIS_URL: ${ACAPY_GENESIS_URL}
