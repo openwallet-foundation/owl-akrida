@@ -18,8 +18,8 @@ services:
     #entrypoint: python -m cProfile -m aries_cloudagent
     command: >
       start
-        --arg-file ./configs/issuer.yml
-        --endpoint http://${ISSUER}:8151
+        --arg-file ./configs/issuer.yml -o redis_cache.connection="redis://${DATABASE}:6379/0" -o redis_cache.max_connections=90
+        --endpoint http://${ISSUER}:${EXPOSED_PORT}
         --genesis-url ${ACAPY_GENESIS_URL}
         --tails-server-base-url http://tails:6543
         --log-level debug
