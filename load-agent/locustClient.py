@@ -271,17 +271,18 @@ class CustomClient:
         if r.status_code != 200:
             raise Exception(r.content)
 
-        # If OOB, need to grab connection_id
-        invitation_msg_id = r.json()['invi_msg_id']
-        g = requests.get(
-            os.getenv("ISSUER_URL") + "/connections",
-            json={"invitation_msg_id": invitation_msg_id},
-            headers=headers,
-        )
-
-        print("g is ", g, " and g.json is ", g.json())
-
         r = r.json()
+
+        # If OOB, need to grab connection_id
+        if out_of_band:
+            invitation_msg_id = r.json()['invi_msg_id']
+            g = requests.get(
+                os.getenv("ISSUER_URL") + "/connections",
+                json={"invitation_msg_id": invitation_msg_id},
+                headers=headers,
+            )
+            connection_id = g.json()['results'][0]['connection_id']
+            r['connection_id'] = connection_id 
 
         return r
 
