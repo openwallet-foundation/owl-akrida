@@ -239,30 +239,43 @@ class CustomClient:
         line = self.readjsonline()
 
     @stopwatch
-    def issuer_getinvite(self):
+    def issuer_getinvite(self, out_of_band=False):
         headers = json.loads(os.getenv("ISSUER_HEADERS"))
         headers["Content-Type"] = "application/json"
-        # r = requests.post(
-        #     os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
-        #     json={
-        #         "metadata": {}, 
-        #         "handshake_protocols": ["https://didcomm.org/didexchange/1.0"],
-        #         "use_public_did": False
-        #     },
-        #     headers=headers
-        # )
-        #print("r is ", r, " and r.json is ", r.json())
-        r = requests.post(
-            os.getenv("ISSUER_URL") + "/connections/create-invitation?auto_accept=true",
-            json={"metadata": {}, "my_label": "Test"},
-            headers=headers,
-        )
+
+        if out_of_band:
+            # Out of Band Connection 
+            # (ACA-Py v10.4 - only works with connections protocol, not DIDExchange) 
+            r = requests.post(
+                os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
+                json={
+                    "metadata": {}, 
+                    "handshake_protocols": ["https://didcomm.org/connections/1.0"]
+                },
+                headers=headers
+            )
+            print("r is ", r, " and r.json is ", r.json())
+
+        else:
+            # Regular Connection
+            r = requests.post(
+                os.getenv("ISSUER_URL") + "/connections/create-invitation?auto_accept=true",
+                json={"metadata": {}, "my_label": "Test"},
+                headers=headers,
+            )
+
+        # Ensure the request worked
         try:
             try_var = r.json()["invitation_url"]
         except Exception:
             raise Exception("Failed to get invitation url. Request: ", r.json())
         if r.status_code != 200:
             raise Exception(r.content)
+
+        # If OOB, need to grab connection_id
+        # g = requests.get(
+        #     os.getenv("ISSUER_URL") + "/connections/create-invitation?auto_accept=true",
+        # )
 
         r = r.json()
 
