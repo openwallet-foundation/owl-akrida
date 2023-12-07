@@ -246,7 +246,7 @@ From there, we're almost ready to spin everything up; however, before we do so, 
 
 We have decided to put these firewall rules, instead of doing them all at once, under their respective section. For each of these firewall rules, you're more than welcome to inspect each of the docker-compose files, which is what is motivating each of the firewall rules. 
 
-For the postgres DB, [if you investigate the `docker-compose.yml`] we will need to allow traffic in on ports `5432` and `6379` for the `holder-db` and `redis-host`, respectively.
+For the postgres DB, [if you investigate the `docker-compose.yml`] we will need to allow traffic in on ports `5432` and `6379` for the `issuer-db` and `redis-host`, respectively.
 
 In order to do this, please make sure that you have sufficient permissions within AWS to be able to edit, add, and remove rules within security groups. 
 
@@ -280,7 +280,7 @@ sudo docker-compose up
 
 *Other than that, just note that if you spin down this VM/environment and want to bring it back up again, you will need to clear out the database. To do this, just do*
 ```
-sudo rm -rf holder-db/ redis*
+sudo rm -rf issuer-db/ redis*
 sudo docker-compose down -v && sudo docker-compose build && sudo docker-compose up
 ```
 
@@ -744,7 +744,7 @@ In doing things this way, you'll also have to stop nginx on port 80, but this sh
 
 Don't forget, once you're done with everything, to go back to the `Instances > Instances` panel, select all of your instances, click on the box on the top right titled `Instance State`, and press `Stop instance` once you are done. To start up the environment, on the other hand, select those instances and press `Start instance`. Don't forget, when you start back up the instances, you'll need to clear out the database VM by doing
 ```
-sudo rm -rf holder-db/ redis*
+sudo rm -rf issuer-db/ redis*
 sudo docker-compose down -v && sudo docker-compose build && sudo docker-compose up
 ```
 Additionally, on this note you'll also have to down, build, up, and re-anchor everything for the ACA-Py agent VM. 

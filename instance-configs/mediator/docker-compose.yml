@@ -1,11 +1,13 @@
 version: "3"
 services:
   mediator:
-    image: indicio-tech/aries-mediator
+    build:
+      dockerfile: ./Dockerfile
+      context: .
     hostname: mediator
     restart: unless-stopped
     environment:
-      - ACAPY_ENDPOINT=[http://{insertDNSEntryHere.com}:3000,ws://{insertDNSEntryHere.com}:3000]
+      - ACAPY_ENDPOINT=[http://${MEDIATOR_DNS}:3000,ws://${MEDIATOR_DNS}:3000]
       - ACAPY_WALLET_STORAGE_CONFIG={"url":"db:5432","wallet_scheme":"DatabasePerWallet"}
       - ACAPY_WALLET_STORAGE_CREDS={"account":"insertStringHere","password":"insertStringHere","admin_account":"insertStringHere","admin_password":"insertStringHere"}
       - ACAPY_WALLET_KEY=testing

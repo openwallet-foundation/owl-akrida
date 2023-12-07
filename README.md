@@ -50,6 +50,8 @@ See [design](./docs/DESIGN.md) for more design details.
 
 Before starting any load testing you **SHOULD** gain written permission that includes the time, method and various systems that you wish to load test. You **MUST NOT** load test any system that you do **NOT** have permission to test.
 
+To get started quickly on your local machine, you can try out the [Quick Start Guide](./docs/QUICKSTART.md)
+
 For high concurrency testing, it is useful to run Locust on a VM where you can easily add more resources for bigger tests. Please read [docs/VM.md](./docs/VM.md)
 
 ### Demo
