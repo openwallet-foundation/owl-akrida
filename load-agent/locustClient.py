@@ -254,7 +254,6 @@ class CustomClient:
                 },
                 headers=headers
             )
-            print("r is ", r, " and r.json is ", r.json())
 
         else:
             # Regular Connection
@@ -273,9 +272,14 @@ class CustomClient:
             raise Exception(r.content)
 
         # If OOB, need to grab connection_id
-        # g = requests.get(
-        #     os.getenv("ISSUER_URL") + "/connections/create-invitation?auto_accept=true",
-        # )
+        invitation_msg_id = r.json()['invi_msg_id']
+        g = requests.get(
+            os.getenv("ISSUER_URL") + "/connections",
+            json={"invitation_msg_id": invitation_msg_id},
+            headers=headers,
+        )
+
+        print("g is ", g, " and g.json is ", g.json())
 
         r = r.json()
 
