@@ -281,15 +281,8 @@ class CustomClient:
                 params={"invitation_msg_id": invitation_msg_id},
                 headers=headers,
             )
-            connection_id = g.json()['results'][-1]['connection_id']
-            # Verify
-            if g.json()['results'][-1]['invitation_msg_id'] != invitation_msg_id:
-                # Try again, more horse power
-                for result in g.json()['results']:
-                    if result['invitation_msg_id'] == invitation_msg_id:
-                        connection_id = result['connection_id']
-                        break
-
+            # Returns only one
+            connection_id = g.json()['results'][0]['connection_id']
             r['connection_id'] = connection_id 
 
         return r
