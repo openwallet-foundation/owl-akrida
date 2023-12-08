@@ -233,6 +233,18 @@ class CustomClient:
             raise e
 
     @stopwatch
+    def clean_up_connection(self, connection_id):
+        # Hit delete endpoint with self.invite['connection_id']
+        d = requests.delete(
+            os.getenv("ISSUER_URL") + f"/connections/{connection_id}",
+            json={"conn_id": connection_id},
+            headers=headers,
+        )
+
+        if d.status_code != 200:
+            raise Exception(d.content)
+
+    @stopwatch
     def ping_mediator(self):
         self.run_command({"cmd": "ping_mediator"})
 
