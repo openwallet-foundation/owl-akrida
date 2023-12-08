@@ -23,6 +23,8 @@ services:
         --genesis-url ${ACAPY_GENESIS_URL}
         --tails-server-base-url http://tails:6543
         --log-level debug
+        --plugin-config-value redis_cache.connection="redis://redis-host:6379/0"
+        --plugin-config-value redis_cache.max_connections=90
     healthcheck:
       test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8151/status/live" | grep "200" > /dev/null
       start_period: 30s

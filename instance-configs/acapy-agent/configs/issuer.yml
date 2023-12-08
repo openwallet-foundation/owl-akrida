@@ -40,6 +40,3 @@ wallet-key: "insecure, for use in demo only"
 auto-provision: true
 
 wallet-storage-type: "postgres_storage"
-
-# Replace Internal IP
-plugin-config-value:
