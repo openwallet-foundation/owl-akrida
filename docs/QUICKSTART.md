@@ -29,7 +29,7 @@ Copy the invitation URL into the .env file. Example:
 MEDIATION_URL=http://mediator:3000?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiY2E2ZGNkNjEtNmRmZC00Zjk3LTg5MzktZDRlMThkNGRjYzI5IiwgInJlY2lwaWVudEtleXMiOiBbIjhzaWY5YTVTazR4QzFCYnhxYnNZZVJnTGN2WFNqZFF4UjFldnpKMjloQk1mIl0sICJsYWJlbCI6ICJNZWRpYXRvciAoQWRtaW4pIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwOi8vbWVkaWF0b3I6MzAwMCJ9
 ```
 
-Now we will need to restart the services for the .env file to update the Locust environment. Doing a simple docker-compose restart will not reload the .env file. We can call the following to restart the services. When calling the docker-compose down, do not include the -v flag, as this will remove the volumes with the issuer and mediator settings.
+Now we will need to restart the services for the .env file to update the Locust environment. Doing a simple docker-compose restart will not reload the .env file. We can CTRL-C the up command and run up again, or we can call the following to restart the services. When calling the docker-compose down, do not include the -v flag, as this will remove the volumes with the issuer and mediator settings.
 
 ```
 docker-compose -f docker-compose.demo.yml down
@@ -119,7 +119,7 @@ LOCUST_FILES=locustMediatorIssue.py
 
 We can now restart the docker-compose services and run the load test.
 
-Now we will need to restart the services for the .env file to update the Locust environment. Doing a simple docker-compose restart will not reload the .env file. We can call the following to restart the services. When calling the docker-compose down, do not include the -v flag, as this will remove the volumes with the issuer and mediator settings.
+Now we will need to restart the services for the .env file to update the Locust environment. Doing a simple docker-compose restart will not reload the .env file. We can CTRL-C the up command and run up again, or we can call the following to restart the services. When calling the docker-compose down, do not include the -v flag, as this will remove the volumes with the issuer and mediator settings.
 
 ```
 docker-compose -f docker-compose.demo.yml down
