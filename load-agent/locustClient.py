@@ -278,7 +278,7 @@ class CustomClient:
             invitation_msg_id = r['invi_msg_id']
             g = requests.get(
                 os.getenv("ISSUER_URL") + "/connections",
-                json={"invitation_msg_id": invitation_msg_id},
+                params={"invitation_msg_id": invitation_msg_id},
                 headers=headers,
             )
             connection_id = g.json()['results'][-1]['connection_id']
