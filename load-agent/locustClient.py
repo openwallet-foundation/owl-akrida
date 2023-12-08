@@ -431,6 +431,27 @@ class CustomClient:
         if r.status_code != 200:
             raise Exception(r.content)
 
+    @stopwatch
+    def clean_up_revoked_credential(self, credential):
+        headers = json.loads(os.getenv("ISSUER_HEADERS"))
+        headers["Content-Type"] = "application/json"
+
+        credential_id = credential["credential_exchange_id"]
+
+        # Not sure why this is here?
+        # (Leaving for testing purposes though)
+        time.sleep(1)
+
+        d = requests.delete(
+            os.getenv("ISSUER_URL") + f"/credentials/{credential_id}",
+            json={
+                "credential_id": credential_id
+            },
+            headers=headers,
+        )
+
+        if d.status_code != 200:
+            raise Exception(d.content)
 
     @stopwatch
     def msg_client(self, connection_id):
