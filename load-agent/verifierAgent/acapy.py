@@ -1,8 +1,11 @@
-from base import BaseVerifier
+from .base import BaseVerifier
+import json
+import os
+import requests
 
 class AcapyVerifier(BaseVerifier):
 
-        def get_invite():
+        def get_invite(self):
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))
                 headers["Content-Type"] = "application/json"
                 # r = requests.post(
@@ -29,4 +32,22 @@ class AcapyVerifier(BaseVerifier):
 
                 r = r.json()
 
-                return r
+                return {'invitation_url': r['invitation_url'], 'connection_id': r['connection_id']}
+
+        def is_up(self):
+                try:
+                        headers = json.loads(os.getenv("VERIFIER_HEADERS"))
+                        headers["Content-Type"] = "application/json"
+                        r = requests.get(
+                        os.getenv("VERIFIER_URL") + "/status",
+                        json={"metadata": {}, "my_label": "Test"},
+                        headers=headers,
+                        )
+                        if r.status_code != 200:
+                        raise Exception(r.content)
+
+                        r = r.json()
+                except:
+                        return False
+
+                return True

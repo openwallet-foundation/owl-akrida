@@ -250,19 +250,7 @@ class CustomClient:
         
     @stopwatch
     def issuer_getliveness(self):
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-        r = requests.get(
-            os.getenv("ISSUER_URL") + "/status",
-            json={"metadata": {}, "my_label": "Test"},
-            headers=headers,
-        )
-        if r.status_code != 200:
-            raise Exception(r.content)
-
-        r = r.json()
-
-        return r
+        return self.issuer.is_up()
 
     @stopwatch
     def accept_invite(self, invite):
@@ -279,36 +267,7 @@ class CustomClient:
     def receive_credential(self, connection_id):
         self.run_command({"cmd": "receiveCredential"})
 
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-
-        issuer_did = os.getenv("CRED_DEF").split(":")[0]
-        schema_parts = os.getenv("SCHEMA").split(":")
-
-        r = requests.post(
-            os.getenv("ISSUER_URL") + "/issue-credential/send",
-            json={
-                "auto_remove": True,
-                "comment": "Performance Issuance",
-                "connection_id": connection_id,
-                "cred_def_id": os.getenv("CRED_DEF"),
-                "credential_proposal": {
-                    "@type": "issue-credential/1.0/credential-preview",
-                    "attributes": json.loads(os.getenv("CRED_ATTR")),
-                },
-                "issuer_did": issuer_did,
-                "schema_id": os.getenv("SCHEMA"),
-                "schema_issuer_did": schema_parts[0],
-                "schema_name": schema_parts[2],
-                "schema_version": schema_parts[3],
-                "trace": True,
-            },
-            headers=headers,
-        )
-        if r.status_code != 200:
-            raise Exception(r.content)
-
-        r = r.json()
+        r = self.issuer.issue_credential(connection_id)
 
         line = self.readjsonline()
 
