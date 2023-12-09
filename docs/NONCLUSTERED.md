@@ -421,7 +421,7 @@ Under the same ACA-Py Admin UI, let's head to the section titled `schema`. Click
 
 #### Creating a Credential Definition
 
-Now that we have a schema created, let's scroll up to the section titled `credential-defintiion`. Click on the $\color{green}{post}$ method titled $\color{green}{/credential-definitions}$ and, again, click on the `Try it out` button. Modify the `body` JSON values so it looks like
+Now that we have a schema created, let's scroll up to the section titled `credential-definition`. Click on the $\color{green}{post}$ method titled $\color{green}{/credential-definitions}$ and, again, click on the `Try it out` button. Modify the `body` JSON values so it looks like
 ```
 {
   "schema_id": "pasteSchemaIDHere",
