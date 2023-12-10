@@ -27,6 +27,9 @@ END_PORT = json.loads(os.getenv("END_PORT"))
 # Message to send mediator, defaults to "ping"
 MESSAGE_TO_SEND = os.getenv("MESSAGE_TO_SEND", "ping")
 
+ISSUER_TYPE = os.getenv("ISSUER_TYPE", "acapy")
+VERIFIER_TYPE = os.getenv("VERIFIER_TYPE", "acapy")
+
 class PortManager:
     def __init__(self):
         self.lock = gevent_lock.BoundedSemaphore()
@@ -94,9 +97,13 @@ class CustomClient:
         from issuerAgent.acapy import AcapyIssuer
         from verifierAgent.acapy import AcapyVerifier
 
-        self.issuer = AcapyIssuer()
-        self.verifier = AcapyVerifier()
-
+        # Load modules here depending on config
+        if ISSUER_TYPE == 'acapy':
+            self.issuer = AcapyIssuer()
+            
+        if VERIFIER_TYPE == 'acapy':
+            self.verifier = AcapyVerifier()
+            
     _locust_environment = None
 
     @stopwatch
@@ -277,77 +284,24 @@ class CustomClient:
     def presentation_exchange(self, connection_id):
         self.run_command({"cmd": "presentationExchange"})
 
-
+        pres_ex_id = self.verifier.request_verification(connection_id)
 
         line = self.readjsonline()
-        r = r.json()
-        pres_ex_id = r["presentation_exchange_id"]
-        # Want to do a for loop
-        iteration = 0
-        try:
-            while iteration < VERIFIED_TIMEOUT_SECONDS:
-                g = requests.get(
-                    os.getenv("ISSUER_URL") + f"/present-proof/records/{pres_ex_id}",
-                    headers=headers,
-                )
-                if (
-                    g.json()["state"] != "request_sent"
-                    and g.json()["state"] != "presentation_received"
-                ):
-                    "request_sent" and g.json()["state"] != "presentation_received"
-                    break
-                iteration += 1
-                time.sleep(1)
-
-            if g.json()["verified"] != "true":
-                raise AssertionError(
-                    f"Presentation was not successfully verified. Presentation in state {g.json()['state']}"
-                )
-
-        except JSONDecodeError as e:
-            raise Exception(
-                "Encountered JSONDecodeError while getting the presentation record: ", g
-            )
+        
+        self.verifier.verify_verification(pres_ex_id)
 
     @stopwatch
     def revoke_credential(self, credential):
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-
-        issuer_did = os.getenv("CRED_DEF").split(":")[0]
-        schema_parts = os.getenv("SCHEMA").split(":")
-
-        time.sleep(1)
-
-        r = requests.post(
-            os.getenv("ISSUER_URL") + "/revocation/revoke",
-            json={
-                "comment": "load test",
-                "connection_id": credential["connection_id"],
-                "cred_ex_id": credential["credential_exchange_id"],
-                "notify": True,
-                "notify_version": "v1_0",
-                "publish": True,
-            },
-            headers=headers,
+        self.issuer.revoke_credential(
+            credential['connection_id'],
+            credential['cred_ex_id']
         )
-        if r.status_code != 200:
-            raise Exception(r.content)
-
 
     @stopwatch
     def msg_client(self, connection_id):
         self.run_command({"cmd": "receiveMessage"})
 
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-
-        r = requests.post(
-            os.getenv("ISSUER_URL") + "/connections/" + connection_id + "/send-message",
-            json={"content": MESSAGE_TO_SEND},
-            headers=headers,
-        )
-        r = r.json()
+        self.issuer.send_message(connection_id, MESSAGE_TO_SEND)
 
         line = self.readjsonline()
 

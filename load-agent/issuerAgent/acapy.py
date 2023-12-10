@@ -2,6 +2,7 @@ from .base import BaseIssuer
 import json
 import os
 import requests
+import time
 
 class AcapyIssuer(BaseIssuer):
         
@@ -91,3 +92,38 @@ class AcapyIssuer(BaseIssuer):
                         "connection_id": r["connection_id"], 
                         "cred_ex_id": r["credential_exchange_id"]
                 }
+
+        def revoke_credential(self, connection_id, credential_exchange_id):
+                headers = json.loads(os.getenv("ISSUER_HEADERS"))
+                headers["Content-Type"] = "application/json"
+
+                issuer_did = os.getenv("CRED_DEF").split(":")[0]
+                schema_parts = os.getenv("SCHEMA").split(":")
+
+                time.sleep(1)
+
+                r = requests.post(
+                        os.getenv("ISSUER_URL") + "/revocation/revoke",
+                        json={
+                                "comment": "load test",
+                                "connection_id": connection_id,
+                                "cred_ex_id": credential_exchange_id,
+                                "notify": True,
+                                "notify_version": "v1_0",
+                                "publish": True,
+                        },
+                        headers=headers,
+                )
+                if r.status_code != 200:
+                        raise Exception(r.content)
+
+        def send_message(self, connection_id, msg):
+                headers = json.loads(os.getenv("ISSUER_HEADERS"))
+                headers["Content-Type"] = "application/json"
+
+                r = requests.post(
+                        os.getenv("ISSUER_URL") + "/connections/" + connection_id + "/send-message",
+                        json={"content": msg},
+                        headers=headers,
+                )
+                r = r.json()
