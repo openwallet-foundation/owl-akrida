@@ -6,6 +6,24 @@ Within this document, we'll attempt to provide
 
 The environment, at the moment, is notorious for not giving very detailed information when failures happen. Often times, resolving these specific errors comes down to pattern recognition or time within the environment. We will attempt to solve this issue by (a) providing you these "pattern recognitions" (e.g. shortcuts for specific issues) as well as (b) teaching how to elicit more information out of your environment. 
 
+## How to Find Failures
+
+Most likely, the first place you will see errors will be within the Locust `Failures` tab (during and after you run your particular test). This is the easiest place to start looking for errors, as it tells you which step the failure is happening on. Additionally, Locust can tell you specific information (see our [Specific Issues](##Specific-Issues) section) which can help you debug faster.
+
+Further, Locust will, minimally, tell you which steps are failing. 
+For example, consider a issuance and verification scenario to new connections using mediation. If a failure happens,
+* with `on_start`, this could possibly indicate a problem with (a) the load agent itself or (b) the mediator. 
+* with `get_invite`, this could possibly indicate a problem with the load agent being able to talk to ACA-Py. 
+* with `accept_invite`, this also may be a problem with firewall rules or with ACA-Py. Also checking our "sanity check" below, within the ACA-Py section, would help. If this still doesn't provide more information, try below our [Ultimate Debugging](##Ultimate-Debugging) section. 
+* with `receive_credential`, it might not be immediately apparent what the failure is. 
+* with `presentation_exchange`, again, it might not be immediately apparent what the failure is. 
+
+Fortunately, if Locust is able to provide information within the `Failures` tab on why it is having an issue, you may just come in luck: one of your failures could lie within our [Specific Issues](##Specific-Issues) section. Within this section, look for the pattern that your failure matches. 
+
+If you have some direction on where to look (at least, which component), it is recommended to SSH into that component and sift through the logs. There will often be an outstanding error, generally with information about why it is raising errors. With luck, we've also included some errors that happen in the logs below that may help resolve your case quickly. 
+
+Otherwise, if there is no helpful information or you are not sure where to begin, please see our [Ultimate Debugging](##Ultimate-Debugging) section. 
+
 ## Specific Issues
 
 ### General
