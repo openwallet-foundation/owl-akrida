@@ -103,8 +103,8 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     // }),
     mediationRecipient: new MediationRecipientModule({
       mediatorInvitationUrl: mediation_url,
-      mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
-//        mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
+//      mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
+      mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
     }),
     anoncreds: new AnonCredsModule({
       registries: [new IndySdkAnonCredsRegistry()],

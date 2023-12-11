@@ -1,13 +1,13 @@
 version: "3"
 services:
-  holder-db:
+  issuer-db:
     image: postgres:14.3
-    hostname: holder-db
+    hostname: issuer-db
     restart: unless-stopped
     ports: # Uncomment to access postgres outside of containers
       - "5432:5432"
     volumes:
-      - ./holder-db:/var/lib/postgresql/data:consistent
+      - ./issuer-db:/var/lib/postgresql/data:consistent
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
