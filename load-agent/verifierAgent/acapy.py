@@ -59,7 +59,6 @@ class AcapyVerifier(BaseVerifier):
 
         def request_verification(self, connection_id):
                 # From verification side
-                print(os.getenv("VERIFIER_HEADERS"))
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
                 headers["Content-Type"] = "application/json"
 
