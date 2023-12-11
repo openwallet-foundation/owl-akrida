@@ -23,6 +23,8 @@ services:
       - LOCUST_MAX_WAIT=${LOCUST_MAX_WAIT} # time between pings
       - ISSUER_URL=${ISSUER_URL}
       - ISSUER_HEADERS=${ISSUER_HEADERS}
+      - VERIFIER_URL=${VERIFIER_URL}
+      - VERIFIER_HEADERS=${VERIFIER_HEADERS}
       - AGENT_IP=${AGENT_IP}
       - CRED_DEF=${CRED_DEF}
       - CRED_ATTR=${CRED_ATTR}
@@ -62,7 +64,7 @@ services:
         --plugin-config-value redis_cache.connection="redis://redis-host:6379/0"
         --plugin-config-value redis_cache.max_connections=90
     healthcheck:
-      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8151/status/live" | grep "200" > /dev/null
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8150/status/live" | grep "200" > /dev/null
       start_period: 30s
       interval: 7s
       timeout: 5s
