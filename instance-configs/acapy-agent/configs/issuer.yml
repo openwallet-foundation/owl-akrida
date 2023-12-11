@@ -11,10 +11,6 @@ outbound-transport: http
 
 emit-new-didcomm-prefix: true
 
-# Admin
-# admin-insecure-mode: true
-admin-api-key: ${ACAPY_ADMIN_API_KEY}
-
 # Connections
 debug-connections: true
 debug-credentials: true
@@ -41,8 +37,3 @@ wallet-key: "insecure, for use in demo only"
 auto-provision: true
 
 wallet-storage-type: "postgres_storage"
-
-# Replace Internal IP
-plugin-config-value:
-  - redis_cache.connection="redis://{INTERNAL_IP}:6379/0"
-  - redis_cache.max_connections=90

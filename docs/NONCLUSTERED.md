@@ -2,7 +2,7 @@
 
 Locust is an open source load testing tool. Locust allows defining user behaviour with Python code, and swarming your system with millions of simultaneous users.
 
-For more information about why [Locust](https://locust.io/) was chosen, or the design document, please see [here](https://github.com/Indicio-tech/aries-akrida/blob/main/docs/DESIGN.md). 
+For more information about why [Locust](https://locust.io/) was chosen, or the design document, please see [here](https://github.com/hyperledger/aries-akrida/blob/main/docs/DESIGN.md). 
 
 Before proceeding, please make sure you have a billing account set up on your cloud provider and that you will have permissions to create and deploy VM instances and other architectures.
 
@@ -210,13 +210,13 @@ If any prompts prompt you with `Are you sure you want to continue connecting?`, 
 
 Bam! You should be good to clone down all of the content we will need now! Let's save this portion though for each of the individual sections. We'll see you there!
 
-# Instantiating VMs on the 
+# Instantiating VMs
 
 ## Postgres DB (ACA-Py Agent Configuration)
 
-First, before any worthwhile adventure, we must grab some resources. We can do this by cloning down the [aries-akrida](https://github.com/Indicio-tech/aries-akrida) repository. Do so, by typing in
+First, before any worthwhile adventure, we must grab some resources. We can do this by cloning down the [aries-akrida](https://github.com/hyperledger/aries-akrida) repository. Do so, by typing in
 ```
-git clone git@github.com:Indicio-tech/aries-akrida.git
+git clone git@github.com:hyperledger/aries-akrida.git
 ```
 within the SSH session of your database VM.
 
@@ -246,7 +246,7 @@ From there, we're almost ready to spin everything up; however, before we do so, 
 
 We have decided to put these firewall rules, instead of doing them all at once, under their respective section. For each of these firewall rules, you're more than welcome to inspect each of the docker-compose files, which is what is motivating each of the firewall rules. 
 
-For the postgres DB, [if you investigate the `docker-compose.yml`] we will need to allow traffic in on ports `5432` and `6379` for the `holder-db` and `redis-host`, respectively.
+For the postgres DB, [if you investigate the `docker-compose.yml`] we will need to allow traffic in on ports `5432` and `6379` for the `issuer-db` and `redis-host`, respectively.
 
 In order to do this, please make sure that you have sufficient permissions within AWS to be able to edit, add, and remove rules within security groups. 
 
@@ -280,7 +280,7 @@ sudo docker-compose up
 
 *Other than that, just note that if you spin down this VM/environment and want to bring it back up again, you will need to clear out the database. To do this, just do*
 ```
-sudo rm -rf holder-db/ redis*
+sudo rm -rf issuer-db/ redis*
 sudo docker-compose down -v && sudo docker-compose build && sudo docker-compose up
 ```
 
@@ -290,9 +290,9 @@ Otherwise, we're ready to get up our ACA-Py agent to communicate with this datab
 
 For this portion, we will once again need that same repo from earlier. 
 
-We can do this by cloning down the [aries-akrida](https://github.com/Indicio-tech/aries-akrida) repository. Do so, by typing in
+We can do this by cloning down the [aries-akrida](https://github.com/hyperledger/aries-akrida) repository. Do so, by typing in
 ```
-git clone git@github.com:Indicio-tech/aries-akrida.git
+git clone git@github.com:hyperledger/aries-akrida.git
 ```
 
 Go ahead and navigate into this repo by entering in `cd aries-akrida`. From there, we will want to take all of the relevant files we will need (without really needing the rest). We can do that by
@@ -325,6 +325,12 @@ echo "ISSUER= " > .env
 # Internal/Private IP of Database
 echo "DATABASE= " >> .env
 
+# Port for ACA-Py Transport Port
+echo "EXPOSED_PORT=8151 " >> .env
+
+# Put a secure string here
+ACAPY_ADMIN_API_KEY="insertSecureStringHere"
+
 # Set this to your own ledger genesis URL
 echo "ACAPY_GENESIS_URL=https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis" >> .env
 # Doesn't need to be test
@@ -335,21 +341,7 @@ echo 'ADMIN_PASSWORD="test"' >> .env
 ```
 where `ISSUER` is the external or Public IP of the ACA-Py agent VM from earlier, `DATABASE` is the internal or Private IP of the Database VM, `ACAPY_GENESIS_URL` is the genesis url of the ledger you will be using (we provided Indicio's by default), and the remaining variables are accounts and passwords that you're welcome to change (but you might need to remember them). 
 
-Before we move onto firewall rules, we need to change one last IP in one of our config files. We will do this by opening an in-line text editor. For this section, grab the internal/private IP of the ACA-Py agent VM. Go ahead and do
-
-```
-vim configs/issuer.yml
-:%s/{INTERNAL_IP}/111.11.11.11
-```
-and press enter, where you are replacing the `111.11.11.11` with the internal/private IP of the database VM. To exit the in-line text editor and save your changes, type in `:wq` and press enter. 
-
-*Note: If you're new to `vim`, the colon will allow you to enter a particular command.*
-
-This tells our ACA-Py agent to communicate with our database, from the previous step, for information (e.g. anchoring DIDs, schemas, etc.). 
-
-However, we'll need to modify our firewall rules again for this communication to actually work. 
-
-(Within this `docker-compose.yml`, we also set the `genesis-url`, so it's recommended to go in and change this if you are not using Indicio's genesis url.)
+However, we'll need to modify our firewall rules again for communication to actually work. 
 
 ### Firewall rules (ACA-Py Agent)
 
@@ -388,11 +380,13 @@ Awesome! Now let's set this ACA-Py agent up to be able to do issuances.
 
 In order to be able to have this ACA-Py agent be able to issue credentials to our simulated clients, we need to set it up for success. To do this, we will have to navigate to the ACA-Py Admin UI. 
 
-We can do this by going to our browser and using the external/public IP of our ACA-Py agent VM. Suppose, for example, the external IP of our ACA-Py agent VM is `external.ip.of.acapy.agent`. Then, in our browser, we will want to navigate to `http://external.ip.of.acapy.agent:8150`, where `external.ip.of.acapy.agent` is the external/public IP of the ACA-Py Agent VM. 
+We can do this by going to our browser and using the external/public IP of our ACA-Py agent VM. Suppose, for example, the external IP of our ACA-Py agent VM is `external.ip.of.acapy.agent`. Then, in our browser, we will want to navigate to `http://external.ip.of.acapy.agent:8150/api/doc`, where `external.ip.of.acapy.agent` is the external/public IP of the ACA-Py Agent VM. 
 
-Welcome to the ACA-Py Admin UI! There are a lot of API calls here, but we're only interested in a select few. Let's scroll down all the way to the section titled `wallet`. 
+Welcome to the ACA-Py Admin UI! In order to be able to make changes and actually use this API, we'll want to authorize ourselves by pressing the `Authorize` box, and then entering our `ACAPY_ADMIN_API_KEY` from earlier. 
 
-Within the `wallet` section, click on the $\color{green}{post}$ method  $\color{green}{/wallet/did/create}$. This should have the dropdown section extend downwards. Click on the box titled `Try it out`. Click on the blue $\color{blue}{Execute}$ button. This will generate you a DID and a verkey. 
+After entering this in, you should be good to go! Welcome! There are a lot of API calls here, but we're only interested in a select few. Let's scroll down all the way to the section titled `wallet`. 
+
+Within the `wallet` section, click on the $\color{green}{post}$ method  $\color{green}{/wallet/did/create}$. This should have the dropdown section extend downwards. Click on the box titled `Try it out`. If the input field for the body box is not already empty, go ahead and make it match just `{}`. Then, click on the blue $\color{blue}{Execute}$ button. This will generate you a DID and a verkey. 
 
 In a separate tab in your browser, navigate to where you can anchor DIDs to the ledger you chose. For Indicio, this is our [self serve site](https://selfserve.indiciotech.io/). If you're using this [Indicio's self serve site], make sure you have selected Indicio's *TestNet*. Then, paste the DID and Verkey. (Notice, in the responses, there are two DIDs and Verkey pairs. There's the top (real) one and the bottom (example) one. We want the top pair.) After pasting, click the orange `Submit` button. (It's recommended not to close this tab yet or, if you do close this tab, save the DID.)
 
@@ -427,7 +421,7 @@ Under the same ACA-Py Admin UI, let's head to the section titled `schema`. Click
 
 #### Creating a Credential Definition
 
-Now that we have a schema created, let's scroll up to the section titled `credential-defintiion`. Click on the $\color{green}{post}$ method titled $\color{green}{/credential-definitions}$ and, again, click on the `Try it out` button. Modify the `body` JSON values so it looks like
+Now that we have a schema created, let's scroll up to the section titled `credential-definition`. Click on the $\color{green}{post}$ method titled $\color{green}{/credential-definitions}$ and, again, click on the `Try it out` button. Modify the `body` JSON values so it looks like
 ```
 {
   "schema_id": "pasteSchemaIDHere",
@@ -470,15 +464,19 @@ After executing these commands, you'll need to SSH into this locust VM again.
 
 For this prepatory portion of the adventure, we will once again need that same repo from earlier. 
 
-We can do this by cloning down the [aries-akrida](https://github.com/Indicio-tech/aries-akrida) repository. Do so, by typing in
+We can do this by cloning down the [aries-akrida](https://github.com/hyperledger/aries-akrida) repository. Do so, by typing in
 ```
-git clone git@github.com:Indicio-tech/aries-akrida.git
+git clone git@github.com:hyperledger/aries-akrida.git
 ```
 
 Go ahead and navigate into this repo by entering in `cd aries-akrida`. 
 Before we go ahead and populate our `.env` file, we'll need to locally clone down a specific version for AFJ for our clients. (For motiviation on why we're doing this, see our design document.  We use AFJ to simulate our clients here.) If you haven't already, `cd aries-akrida`. 
 
-Now we'll take care of populating the `.env` file. However, we will need some information from AWS in order to fill it out.
+```
+git clone git@github.com:openwallet-foundation/agent-framework-javascript.git
+```
+
+Now we'll take care of populating the `.env` file. However, we will need some information from AWS in order to fill it out. 
 
 Besides AWS, if you have your own mediator, this would be the time to populate the `.env` with your mediation url. It's also important, at this step, to know whether it supports version 2 of the pickup protocol (recommended to ask, or just wait for errors to pop up).
 
@@ -506,13 +504,15 @@ MEDIATION_URL=<Insert mediation URL here>
 LOCUST_MIN_WAIT=1
 LOCUST_MAX_WAIT=10
 
-AGENT_IP=# Internal IP locust VM
+AGENT_IP=# External IP locust VM
 MASTER_HOST=# External IP locust VM
 MASTER_PORT=8089
 
 # Begins with http://, ends in :8150
 ISSUER_URL=http://{EXTERNAL_IP_OF_ACAPY_AGENT}:8150
-ISSUER_HEADERS={"Authorization":"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ3YWxsZXRfaWQiOiIwOWY5ZDAwNC02OTM0LTQyZDYtOGI4NC1jZTY4YmViYzRjYTUiLCJpYXQiOjE2NzY4NDExMTB9.pDQPjiYEAoDJf3044zbsHrSjijgS-yC8t-9ZiuC08x8"}
+# Update the X-API-Key with your ACAPY_ADMIN_API_KEY from your ACA-Py Agent VM 
+# (Scroll right -->)
+ISSUER_HEADERS={"Authorization":"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ3YWxsZXRfaWQiOiIwOWY5ZDAwNC02OTM0LTQyZDYtOGI4NC1jZTY4YmViYzRjYTUiLCJpYXQiOjE2NzY4NDExMTB9.pDQPjiYEAoDJf3044zbsHrSjijgS-yC8t-9ZiuC08x8","X-API-Key": "Replace with ACAPY_ADMIN_API_KEY"}
 
 # Ledger of choice (candy, etc.)
 LEDGER=indicio 
@@ -521,6 +521,7 @@ CRED_DEF= # Credential definition from earlier
 CRED_ATTR='[{"mime-type": "text/plain","name": "score","value": "test"}]'
 SCHEMA= # Schema from earlier
 VERIFIED_TIMEOUT_SECONDS=20
+WITH_MEDIATION=True
 
 # Simple arbitrary 3 issuances per 1 verification scenario for now
 LOCUST_FILES=locustFractionMediatorIssueVerify.py
@@ -533,7 +534,7 @@ END_PORT=12000
 
 (Optional) Additionally, if you would like to send a 1KB message over mediation, here is a sample 1KB message that you're welcome to populate within your .env file.
 ```
-MESSAGE_TO_SEND="Amidst the tranquil embrace of nature, where the sun's golden rays paint the sky with hues of warmth, and the gentle rustle of leaves creates a symphony of serenity, I find solace. In this haven of stillness, worries dissipate like morning mist, and the heart finds a rhythm in harmony with the earth's pulse. It's a reminder that amidst the chaos of life, there exists a tranquil sanctuary within us, waiting to be discovered. As we journey through the tapestry of existence, may we always take a moment to bask in the simple beauty that surrounds us. Amidst the tranquil embrace of nature, where the sun's golden rays paint the sky with hues of warmth, and the gentle rustle of leaves creates a symphony of serenity, I find solace. In this haven of stillness, worries dissipate like morning mist, and the heart finds a rhythm in harmony with the earth's pulse. It's a reminder that amidst the chaos of life, there exists a tranquil sanctuary within us, waiting to be discovered. As we journey through the tapestry of existence"
+MESSAGE_TO_SEND="Lorem ipsum dolor sit amet consectetur, adipiscing elit nisi aptent rutrum varius, class non nullam etiam. Ac purus donec morbi litora vivamus nec semper suscipit vehicula, aliquet parturient leo mollis in mauris quis nisi tincidunt, sociis accumsan senectus pellentesque erat cras sociosqu phasellus augue, posuere ligula scelerisque tempus dapibus enim torquent facilisi. Imperdiet gravida justo conubia congue senectus porta vivamus netus rhoncus nec, mauris tristique semper feugiat natoque nunc nibh montes dapibus proin, egestas luctus sollicitudin maecenas malesuada pharetra eleifend nam ultrices. Iaculis fringilla penatibus dictumst varius enim elementum justo senectus, pretium mauris cum vel tempor gravida lacinia auctor a, cursus sed euismod scelerisque vivamus netus aenean. Montes iaculis dui platea blandit mattis nec urna, diam ridiculus augue tellus vivamus justo nulla, auctor hendrerit aenean arcu venenatis tristique feugiat, odio pellentesque purus nascetur netus fringilla. S."
 ```
 And, that's it! Last, but not least, we'll go ahead and adjust the firewall rules. 
 
@@ -575,10 +576,16 @@ Below, we will provide documentation on how to up your environment if you want t
 
 ### Resolving Pickup Protocol Versions
 
-If the mediator you are using does not support version 2 of the pickup protocol, make sure to comment out line 45 of `load-agent/agent.js`; that is,
+If the mediator you are using does not support version 2 of the pickup protocol, make sure to comment out this line `load-agent/agent.js` and uncomment out the implicit protocol line; that is, make
 
 ```
-mediatorPickupStrategy: ariesCore.MediatorPickupStrategy.PickUpV2
+mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
+// mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
+```
+become like
+```
+// mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
+mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
 ```
 
 Then down, rebuild, and up the locust VM again. 
@@ -587,22 +594,20 @@ Then down, rebuild, and up the locust VM again.
 
 Sometimes, after you have entirely spun down the environment and are trying to up everything again, docker will want to use up all of the ports you have exposed. When this happens, all `docker` commands will appear to be entirely unresponsive (that is, they will just hang when you type a command). If this comes up, here are some helpful commands:
 ```
-# (Optionally) pkill -9 -f docker
-sudo systemctl disable docker docker.socket
-# Recommend to stop + start through AWS, not here
-sudo reboot 
-# When you SSH back in:
+sudo pkill -9 -f docker
+sudo systemctl disable docker docker.socket 
 sudo rm -rf /var/lib/docker
 sudo systemctl start docker
+# If needed: sudo systemctl restart docker
 ```
 
 ## Mediator
 
 This last part is optional, only if you want to up your own mediator. We will proceed with either the assumption that you (a) have permissions to set DNS entries (for Amazon, via Route 53) or (b) will be able to ask for this. 
 
-To begin, clone down the [aries-akrida](https://github.com/Indicio-tech/aries-akrida) repository. Do 
+To begin, clone down the [aries-akrida](https://github.com/hyperledger/aries-akrida) repository. Do 
 ```
-git clone git@github.com:Indicio-tech/aries-akrida.git
+git clone git@github.com:hyperledger/aries-akrida.git
 ```
 
 Go ahead and navigate into this repo by doing `cd aries-akrida`. From there, we will want to take all of the relevant files we will need (without really needing the rest). We can do that by
@@ -744,7 +749,7 @@ In doing things this way, you'll also have to stop nginx on port 80, but this sh
 
 Don't forget, once you're done with everything, to go back to the `Instances > Instances` panel, select all of your instances, click on the box on the top right titled `Instance State`, and press `Stop instance` once you are done. To start up the environment, on the other hand, select those instances and press `Start instance`. Don't forget, when you start back up the instances, you'll need to clear out the database VM by doing
 ```
-sudo rm -rf holder-db/ redis*
+sudo rm -rf issuer-db/ redis*
 sudo docker-compose down -v && sudo docker-compose build && sudo docker-compose up
 ```
 Additionally, on this note you'll also have to down, build, up, and re-anchor everything for the ACA-Py agent VM. 
