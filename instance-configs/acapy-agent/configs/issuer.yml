@@ -11,9 +11,6 @@ outbound-transport: http
 
 emit-new-didcomm-prefix: true
 
-# Admin
-admin-insecure-mode: true
-
 # Connections
 debug-connections: true
 debug-credentials: true
