@@ -234,6 +234,8 @@ class CustomClient:
 
     @stopwatch
     def clean_up_connection(self, connection_id):
+        headers = json.loads(os.getenv("ISSUER_HEADERS"))
+        headers["Content-Type"] = "application/json"
         # Hit delete endpoint with self.invite['connection_id']
         d = requests.delete(
             os.getenv("ISSUER_URL") + f"/connections/{connection_id}",
