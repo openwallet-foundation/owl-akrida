@@ -304,6 +304,10 @@ class CustomClient:
         )
 
     @stopwatch
+    def clean_up_revoked_credential(self, credential):
+        self.issuer.clean_up_revoked_credential(credential)
+
+    @stopwatch
     def msg_client(self, connection_id):
         self.run_command({"cmd": "receiveMessage"})
 

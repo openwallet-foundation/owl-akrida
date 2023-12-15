@@ -47,6 +47,10 @@ class UserBehaviour(SequentialTaskSet):
 
         self.client.revoke_credential(self.credential)
 
+    @task
+    def clean_up_revoked_credential(self):
+        self.client.clean_up_revoked_credential(self.credential)
+
 class IssueRevoke(CustomLocust):
     tasks = [UserBehaviour]
     wait_time = between(float(os.getenv('LOCUST_MIN_WAIT',0.1)), float(os.getenv('LOCUST_MAX_WAIT',1)))
