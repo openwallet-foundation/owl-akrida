@@ -283,6 +283,10 @@ class CustomClient:
         return r
 
     @stopwatch
+    def verifier_getinvite(self):
+        return self.verifier.get_invite(out_of_band=OOB_INVITE)
+
+    @stopwatch
     def presentation_exchange(self, connection_id):
         self.run_command({"cmd": "presentationExchange"})
 
