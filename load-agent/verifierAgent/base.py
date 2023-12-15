@@ -1,6 +1,6 @@
 
 class BaseVerifier:
-        def get_invite(self):
+        def get_invite(self, out_of_band=False):
                 # return  {'invitation_url': , 'connection_id': }
                 raise NotImplementedError
 

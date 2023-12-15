@@ -40,11 +40,23 @@ class UserBehaviour(SequentialTaskSet):
 
         credential = self.client.receive_credential(self.invite["connection_id"])
 
+    def get_verifier_invite(self):
+        verifier_invite = self.client.issuer_getinvite()
+        self.verifier_invite = verifier_invite
+
+    def accept_verifier_invite(self):
+        self.client.ensure_is_running()
+
+        verifier_connection = self.client.accept_invite(self.verifier_invite['invitation_url'])
+        self.verifier_connection = verifier_connection
+
     def on_start(self):
         self.client.startup(withMediation=bool(WITH_MEDIATION))
         self.get_invite()
         self.accept_invite()
         self.receive_credential()
+        self.get_verifier_invite()
+        self.accept_verifier_invite()
 
     def on_stop(self):
         self.client.shutdown()
@@ -63,7 +75,7 @@ class UserBehaviour(SequentialTaskSet):
             # Need connection id
             try:
                 presentation = self.client.presentation_exchange(
-                    self.invite["connection_id"]
+                    self.verifier_invite["connection_id"]
                 )
                 presentation_not_complete = False
             except AssertionError as e:

@@ -30,6 +30,8 @@ MESSAGE_TO_SEND = os.getenv("MESSAGE_TO_SEND", "ping")
 ISSUER_TYPE = os.getenv("ISSUER_TYPE", "acapy")
 VERIFIER_TYPE = os.getenv("VERIFIER_TYPE", "acapy")
 
+OOB_INVITE = os.getenv("OOB_INVITE", False).lower() in ('true', '1', 't')
+
 class PortManager:
     def __init__(self):
         self.lock = gevent_lock.BoundedSemaphore()
@@ -253,7 +255,7 @@ class CustomClient:
 
     @stopwatch
     def issuer_getinvite(self):
-        return self.issuer.get_invite()
+        return self.issuer.get_invite(out_of_band=OOB_INVITE)
         
     @stopwatch
     def issuer_getliveness(self):
@@ -279,6 +281,10 @@ class CustomClient:
         line = self.readjsonline()
 
         return r
+
+    @stopwatch
+    def verifier_getinvite(self):
+        return self.verifier.get_invite(out_of_band=OOB_INVITE)
 
     @stopwatch
     def presentation_exchange(self, connection_id):
