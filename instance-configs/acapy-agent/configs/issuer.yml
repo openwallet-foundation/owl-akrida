@@ -11,9 +11,6 @@ outbound-transport: http
 
 emit-new-didcomm-prefix: true
 
-# Admin
-admin-insecure-mode: true
-
 # Connections
 debug-connections: true
 debug-credentials: true
@@ -40,6 +37,3 @@ wallet-key: "insecure, for use in demo only"
 auto-provision: true
 
 wallet-storage-type: "postgres_storage"
-
-# Replace Internal IP
-plugin-config-value:

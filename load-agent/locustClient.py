@@ -27,6 +27,11 @@ END_PORT = json.loads(os.getenv("END_PORT"))
 # Message to send mediator, defaults to "ping"
 MESSAGE_TO_SEND = os.getenv("MESSAGE_TO_SEND", "ping")
 
+ISSUER_TYPE = os.getenv("ISSUER_TYPE", "acapy")
+VERIFIER_TYPE = os.getenv("VERIFIER_TYPE", "acapy")
+
+OOB_INVITE = os.getenv("OOB_INVITE", False).lower() in ('true', '1', 't')
+
 class PortManager:
     def __init__(self):
         self.lock = gevent_lock.BoundedSemaphore()
@@ -91,6 +96,16 @@ class CustomClient:
         self.port = None
         self.withMediation = None
 
+        from issuerAgent.acapy import AcapyIssuer
+        from verifierAgent.acapy import AcapyVerifier
+
+        # Load modules here depending on config
+        if ISSUER_TYPE == 'acapy':
+            self.issuer = AcapyIssuer()
+            
+        if VERIFIER_TYPE == 'acapy':
+            self.verifier = AcapyVerifier()
+            
     _locust_environment = None
 
     @stopwatch
@@ -239,69 +254,12 @@ class CustomClient:
         line = self.readjsonline()
 
     @stopwatch
-    def issuer_getinvite(self, out_of_band=False):
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-
-        if out_of_band:
-            # Out of Band Connection 
-            # (ACA-Py v10.4 - only works with connections protocol, not DIDExchange) 
-            r = requests.post(
-                os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
-                json={
-                    "metadata": {}, 
-                    "handshake_protocols": ["https://didcomm.org/connections/1.0"]
-                },
-                headers=headers
-            )
-
-        else:
-            # Regular Connection
-            r = requests.post(
-                os.getenv("ISSUER_URL") + "/connections/create-invitation?auto_accept=true",
-                json={"metadata": {}, "my_label": "Test"},
-                headers=headers,
-            )
-
-        # Ensure the request worked
-        try:
-            try_var = r.json()["invitation_url"]
-        except Exception:
-            raise Exception("Failed to get invitation url. Request: ", r.json())
-        if r.status_code != 200:
-            raise Exception(r.content)
-
-        r = r.json()
-
-        # If OOB, need to grab connection_id
-        if out_of_band:
-            invitation_msg_id = r['invi_msg_id']
-            g = requests.get(
-                os.getenv("ISSUER_URL") + "/connections",
-                params={"invitation_msg_id": invitation_msg_id},
-                headers=headers,
-            )
-            # Returns only one
-            connection_id = g.json()['results'][0]['connection_id']
-            r['connection_id'] = connection_id 
-
-        return r
-
+    def issuer_getinvite(self):
+        return self.issuer.get_invite(out_of_band=OOB_INVITE)
+        
     @stopwatch
     def issuer_getliveness(self):
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-        r = requests.get(
-            os.getenv("ISSUER_URL") + "/status",
-            json={"metadata": {}, "my_label": "Test"},
-            headers=headers,
-        )
-        if r.status_code != 200:
-            raise Exception(r.content)
-
-        r = r.json()
-
-        return r
+        return self.issuer.is_up()
 
     @stopwatch
     def accept_invite(self, invite):
@@ -318,36 +276,7 @@ class CustomClient:
     def receive_credential(self, connection_id):
         self.run_command({"cmd": "receiveCredential"})
 
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-
-        issuer_did = os.getenv("CRED_DEF").split(":")[0]
-        schema_parts = os.getenv("SCHEMA").split(":")
-
-        r = requests.post(
-            os.getenv("ISSUER_URL") + "/issue-credential/send",
-            json={
-                "auto_remove": True,
-                "comment": "Performance Issuance",
-                "connection_id": connection_id,
-                "cred_def_id": os.getenv("CRED_DEF"),
-                "credential_proposal": {
-                    "@type": "issue-credential/1.0/credential-preview",
-                    "attributes": json.loads(os.getenv("CRED_ATTR")),
-                },
-                "issuer_did": issuer_did,
-                "schema_id": os.getenv("SCHEMA"),
-                "schema_issuer_did": schema_parts[0],
-                "schema_name": schema_parts[2],
-                "schema_version": schema_parts[3],
-                "trace": True,
-            },
-            headers=headers,
-        )
-        if r.status_code != 200:
-            raise Exception(r.content)
-
-        r = r.json()
+        r = self.issuer.issue_credential(connection_id)
 
         line = self.readjsonline()
 
@@ -357,113 +286,24 @@ class CustomClient:
     def presentation_exchange(self, connection_id):
         self.run_command({"cmd": "presentationExchange"})
 
-        # From verification side
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))  # headers same
-        headers["Content-Type"] = "application/json"
-
-        verifier_did = os.getenv("CRED_DEF").split(":")[0]
-        schema_parts = os.getenv("SCHEMA").split(":")
-
-        # Might need to change nonce
-        # TO DO: Generalize schema parts
-        r = requests.post(
-            os.getenv("ISSUER_URL") + "/present-proof/send-request",
-            json={
-                "auto_remove": False,
-                "auto_verify": True,
-                "comment": "Performance Verification",
-                "connection_id": connection_id,
-                "proof_request": {
-                    "name": "PerfScore",
-                    "requested_attributes": {
-                        item["name"]: {"name": item["name"]}
-                        for item in json.loads(os.getenv("CRED_ATTR"))
-                    },
-                    "requested_predicates": {},
-                    "version": "1.0",
-                },
-                "trace": True,
-            },
-            headers=headers,
-        )
-
-        try:
-            if r.status_code != 200:
-                raise Exception("Request was not successful: ", r.content)
-        except JSONDecodeError as e:
-            raise Exception(
-                "Encountered JSONDecodeError while parsing the request: ", r
-            )
+        pres_ex_id = self.verifier.request_verification(connection_id)
 
         line = self.readjsonline()
-        r = r.json()
-        pres_ex_id = r["presentation_exchange_id"]
-        # Want to do a for loop
-        iteration = 0
-        try:
-            while iteration < VERIFIED_TIMEOUT_SECONDS:
-                g = requests.get(
-                    os.getenv("ISSUER_URL") + f"/present-proof/records/{pres_ex_id}",
-                    headers=headers,
-                )
-                if (
-                    g.json()["state"] != "request_sent"
-                    and g.json()["state"] != "presentation_received"
-                ):
-                    "request_sent" and g.json()["state"] != "presentation_received"
-                    break
-                iteration += 1
-                time.sleep(1)
-
-            if g.json()["verified"] != "true":
-                raise AssertionError(
-                    f"Presentation was not successfully verified. Presentation in state {g.json()['state']}"
-                )
-
-        except JSONDecodeError as e:
-            raise Exception(
-                "Encountered JSONDecodeError while getting the presentation record: ", g
-            )
+        
+        self.verifier.verify_verification(pres_ex_id)
 
     @stopwatch
     def revoke_credential(self, credential):
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-
-        issuer_did = os.getenv("CRED_DEF").split(":")[0]
-        schema_parts = os.getenv("SCHEMA").split(":")
-
-        time.sleep(1)
-
-        r = requests.post(
-            os.getenv("ISSUER_URL") + "/revocation/revoke",
-            json={
-                "comment": "load test",
-                "connection_id": credential["connection_id"],
-                "cred_ex_id": credential["credential_exchange_id"],
-                "notify": True,
-                "notify_version": "v1_0",
-                "publish": True,
-            },
-            headers=headers,
+        self.issuer.revoke_credential(
+            credential['connection_id'],
+            credential['cred_ex_id']
         )
-        if r.status_code != 200:
-            raise Exception(r.content)
-
 
     @stopwatch
     def msg_client(self, connection_id):
         self.run_command({"cmd": "receiveMessage"})
 
-        headers = json.loads(os.getenv("ISSUER_HEADERS"))
-        headers["Content-Type"] = "application/json"
-
-        r = requests.post(
-            os.getenv("ISSUER_URL") + "/connections/" + connection_id + "/send-message",
-            json={"content": MESSAGE_TO_SEND},
-            headers=headers,
-        )
-        r = r.json()
+        self.issuer.send_message(connection_id, MESSAGE_TO_SEND)
 
         line = self.readjsonline()
 

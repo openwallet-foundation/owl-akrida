@@ -1,0 +1,153 @@
+version: '3'
+services:
+
+  load-agent:
+    build:
+      context: .
+      target: release
+    hostname: load-agent
+    restart: unless-stopped
+    user: root 
+    tty: true
+    command: >
+      locust -f ${LOCUST_FILES} 
+    ports:
+      - "8089:8089"
+      - "8090:8090"
+      - "${START_PORT}-${END_PORT}:${START_PORT}-${END_PORT}"
+    environment: 
+      - NODE_ENV=${NODE_ENV}
+      - BROWSER=none  # don't open the web browser
+      - MEDIATION_URL=${MEDIATION_URL}
+      - LOCUST_MIN_WAIT=${LOCUST_MIN_WAIT} # time between pings
+      - LOCUST_MAX_WAIT=${LOCUST_MAX_WAIT} # time between pings
+      - ISSUER_URL=${ISSUER_URL}
+      - ISSUER_HEADERS=${ISSUER_HEADERS}
+      - VERIFIER_URL=${VERIFIER_URL}
+      - VERIFIER_HEADERS=${VERIFIER_HEADERS}
+      - AGENT_IP=${AGENT_IP}
+      - CRED_DEF=${CRED_DEF}
+      - CRED_ATTR=${CRED_ATTR}
+      - SCHEMA=${SCHEMA}
+      - LEDGER=${LEDGER}
+      - START_PORT=${START_PORT}
+      - END_PORT=${END_PORT}
+      - MESSAGE_TO_SEND=${MESSAGE_TO_SEND}
+      - VERIFIED_TIMEOUT_SECONDS=${VERIFIED_TIMEOUT_SECONDS}
+      - WITH_MEDIATION=${WITH_MEDIATION}
+      - OOB_INVITE=${OOB_INVITE}
+    networks:
+      - app-network
+
+  # Issuer
+  issuer:
+    #image: ghcr.io/hyperledger/aries-cloudagent-python:py3.9-0.8.0-rc0
+    image: acapy-cache-redis
+    build:
+     context: ./instance-configs/acapy-agent
+     dockerfile: ./docker/Dockerfile
+    volumes:
+      - ./instance-configs/acapy-agent/configs:/home/indy/configs:ro,z
+    ports:
+      - "8150:8150"
+      - "8151:8151"
+    environment:
+      ACAPY_ADMIN_API_KEY: ""
+      ACAPY_ADMIN_INSECURE_MODE: true
+      ACAPY_WALLET_STORAGE_CONFIG: '{"url":"issuer-db:5432","max_connections":5}'
+      ACAPY_GENESIS_URL: ${ACAPY_GENESIS_URL}
+      ACAPY_WALLET_STORAGE_CREDS: '{"account":"test","password":"test","admin_account":"test","admin_password":"test"}'
+    #entrypoint: python -m cProfile -m aries_cloudagent
+    command: >
+      start
+        --arg-file ./configs/issuer.yml
+        --endpoint http://issuer:8151
+        --genesis-url ${ACAPY_GENESIS_URL}
+        --log-level debug
+        --plugin-config-value redis_cache.connection="redis://redis-host:6379/0"
+        --plugin-config-value redis_cache.max_connections=90
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8150/status/live" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 7s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # databases to support aca-py
+  issuer-db:
+    image: postgres:14.3
+    hostname: issuer-db
+    restart: unless-stopped
+    ports: # Uncomment to access postgres outside of containers
+      - "5432:5432"
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    env_file:
+      - ./instance-configs/database/sample.env      
+    volumes:
+      - issuer-db:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  redis-host:
+    image: "redis:alpine"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    env_file:
+      - ./instance-configs/database/sample.env
+    networks:
+      - app-network
+
+  # Mediator Services
+  mediator:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./instance-configs/mediator
+    hostname: mediator
+    restart: unless-stopped
+    environment:
+      - ACAPY_ENDPOINT=[http://${MEDIATOR_DNS}:3000,ws://${MEDIATOR_DNS}:3000]
+      - ACAPY_WALLET_STORAGE_CONFIG={"url":"mediator-db:5432","wallet_scheme":"DatabasePerWallet"}
+      - ACAPY_WALLET_STORAGE_CREDS={"account":"insertStringHere","password":"insertStringHere","admin_account":"insertStringHere","admin_password":"insertStringHere"}
+      - ACAPY_WALLET_KEY=testing
+    volumes:
+      - ./instance-configs/mediator/wait-for-it:/home/indy/wait-for-it:z
+    command: >
+      sh -c "./wait-for-it/wait-for-it.sh mediator-db:5432 -s -t 60 -- aca-py start --auto-provision --arg-file ./configs/start.yml"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "mediator-db"
+    networks:
+      - app-network
+
+  # DB Service
+  mediator-db:
+    image: postgres:10
+    hostname: mediator-db
+    restart: always
+    #    ports: # Uncomment to access postgres outside of containers
+    #      - "5432:5432"
+    environment:
+      POSTGRES_USER: insertStringHere
+      POSTGRES_PASSWORD: insertStringHere
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - mediator-db:/var/lib/postgresql/data     
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  issuer-db:   
+  mediator-db:

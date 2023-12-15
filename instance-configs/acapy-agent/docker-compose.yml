@@ -12,17 +12,21 @@ services:
       - "8150:8150"
       - "8151:8151"
     environment:
+      ACAPY_ADMIN_API_KEY: ${ACAPY_ADMIN_API_KEY}
+      ACAPY_ADMIN_INSECURE_MODE: false
       ACAPY_WALLET_STORAGE_CONFIG: '{"url":"${DATABASE}:5432","max_connections":5}'
       ACAPY_GENESIS_URL: ${ACAPY_GENESIS_URL}
       ACAPY_WALLET_STORAGE_CREDS: '{"account":"${ACCOUNT}","password":"${PASSWORD}","admin_account":"${ADMIN_ACCOUNT}","admin_password":"${ADMIN_PASSWORD}"}'
     #entrypoint: python -m cProfile -m aries_cloudagent
     command: >
       start
-        --arg-file ./configs/issuer.yml -o redis_cache.connection="redis://${DATABASE}:6379/0" -o redis_cache.max_connections=90
+        --arg-file ./configs/issuer.yml
         --endpoint http://${ISSUER}:${EXPOSED_PORT}
         --genesis-url ${ACAPY_GENESIS_URL}
         --tails-server-base-url http://tails:6543
         --log-level debug
+        --plugin-config-value redis_cache.connection="redis://${DATABASE:-redis-host}:6379/0"
+        --plugin-config-value redis_cache.max_connections=90
     healthcheck:
       test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8151/status/live" | grep "200" > /dev/null
       start_period: 30s
