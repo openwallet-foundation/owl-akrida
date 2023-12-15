@@ -24,12 +24,12 @@ class UserBehaviour(SequentialTaskSet):
         self.client.shutdown()
 
     @task
-    def get_invite(self):
+    def get_issuer_invite(self):
         invite = self.client.issuer_getinvite()
         self.invite = invite
 
     @task
-    def accept_invite(self):
+    def accept_issuer_invite(self):
         self.client.ensure_is_running()
 
         connection = self.client.accept_invite(self.invite['invitation_url'])
@@ -42,11 +42,23 @@ class UserBehaviour(SequentialTaskSet):
         credential = self.client.receive_credential(self.invite['connection_id'])
 
     @task
+    def get_verifier_invite(self):
+        verifier_invite = self.client.issuer_getinvite()
+        self.verifier_invite = verifier_invite
+
+    @task
+    def accept_verifier_invite(self):
+        self.client.ensure_is_running()
+
+        verifier_connection = self.client.accept_invite(self.verifier_invite['invitation_url'])
+        self.verifier_connection = verifier_connection
+
+    @task
     def presentation_exchange(self):
         self.client.ensure_is_running()
 
         # Need connection id
-        presentation = self.client.presentation_exchange(self.invite['connection_id'])
+        presentation = self.client.presentation_exchange(self.verifier_invite['connection_id'])
 
 
 class Issue(CustomLocust):
