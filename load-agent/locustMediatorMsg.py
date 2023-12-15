@@ -36,6 +36,7 @@ class UserBehaviour(SequentialTaskSet):
         self.connection = connection
 
     def on_stop(self):
+        self.client.issuer_cleanup()
         self.client.shutdown()
 
     @task

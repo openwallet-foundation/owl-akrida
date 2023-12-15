@@ -254,6 +254,14 @@ class CustomClient:
     @stopwatch
     def issuer_getinvite(self):
         return self.issuer.get_invite()
+
+    @stopwatch
+    def issuer_cleanup(self):
+        return self.issuer.clean_up()
+
+    @stopwatch
+    def verifier_cleanup(self):
+        return self.verifier.clean_up()
         
     @stopwatch
     def issuer_getliveness(self):

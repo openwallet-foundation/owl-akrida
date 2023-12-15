@@ -41,6 +41,10 @@ class UserBehaviour(SequentialTaskSet):
 
         credential = self.client.receive_credential(self.invite['connection_id'])
 
+    @task
+    def clean_up(self):
+        self.client.issuer_cleanup() 
+
 class Issue(CustomLocust):
     tasks = [UserBehaviour]
     wait_time = between(float(os.getenv('LOCUST_MIN_WAIT',0.1)), float(os.getenv('LOCUST_MAX_WAIT',1)))

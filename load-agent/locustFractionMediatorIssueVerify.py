@@ -25,6 +25,7 @@ class UserBehaviour(SequentialTaskSet):
 
     @task
     def get_invite(self):
+        # TO DO: Connect to verifier
         invite = self.client.issuer_getinvite()
         self.invite = invite
 
@@ -47,6 +48,11 @@ class UserBehaviour(SequentialTaskSet):
 
         # Need connection id
         presentation = self.client.presentation_exchange(self.invite['connection_id'])
+
+    @task(1)
+    def clean_up(self):
+        self.client.issuer_cleanup() 
+        # TO DO: Clean up verifier
 
 
 class Issue(CustomLocust):

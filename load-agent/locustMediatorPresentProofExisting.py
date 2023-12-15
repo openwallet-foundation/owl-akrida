@@ -45,6 +45,7 @@ class UserBehaviour(SequentialTaskSet):
         self.get_invite()
         self.accept_invite()
         self.receive_credential()
+        self.client.issuer_cleanup()
 
     def on_stop(self):
         self.client.shutdown()
@@ -72,6 +73,7 @@ class UserBehaviour(SequentialTaskSet):
                     pass
                 else:
                     raise AssertionError("Error is : ", e)
+
 
 
 class Issue(CustomLocust):
