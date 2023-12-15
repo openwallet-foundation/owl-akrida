@@ -56,7 +56,14 @@ For high concurrency testing, it is useful to run Locust on a VM where you can e
 
 ### Demo
 
-TODO - Video Demo
+<a href="https://www.youtube.com/watch?v=j_zva1CQ15U">
+  <img width="1680" alt="thumbnail" src="./docs/images/thumbnail.png" />
+</a>
+
+
+
+
+
 
 ### Getting Started
 
