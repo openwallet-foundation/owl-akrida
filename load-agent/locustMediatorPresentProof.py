@@ -60,6 +60,14 @@ class UserBehaviour(SequentialTaskSet):
         # Need connection id
         presentation = self.client.presentation_exchange(self.verifier_invite['connection_id'])
 
+    @task
+    def issuer_cleanup(self):
+        self.client.issuer_cleanup()
+
+    @task
+    def verifier_cleanup(self):
+        self.client.verifier_cleanup()
+
 
 class Issue(CustomLocust):
     tasks = [UserBehaviour]

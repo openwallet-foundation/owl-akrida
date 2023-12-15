@@ -283,6 +283,10 @@ class CustomClient:
         return r
 
     @stopwatch
+    def issuer_cleanup(self):
+        return self.issuer.clean_up()
+
+    @stopwatch
     def verifier_getinvite(self):
         return self.verifier.get_invite(out_of_band=OOB_INVITE)
 
@@ -312,3 +316,7 @@ class CustomClient:
         line = self.readjsonline()
 
         return line
+
+    @stopwatch
+    def verifier_cleanup(self):
+        return self.verifier.clean_up()

@@ -48,6 +48,10 @@ class UserBehaviour(SequentialTaskSet):
         # Need connection id
         presentation = self.client.presentation_exchange(self.invite['connection_id'])
 
+    @task(1)
+    def issuer_cleanup(self):
+        self.client.issuer_cleanup()
+
 
 class Issue(CustomLocust):
     tasks = [UserBehaviour]

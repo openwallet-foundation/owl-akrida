@@ -59,6 +59,8 @@ class UserBehaviour(SequentialTaskSet):
         self.accept_verifier_invite()
 
     def on_stop(self):
+        self.client.issuer_cleanup()
+        self.client.verifier_cleanup()
         self.client.shutdown()
 
     @task
