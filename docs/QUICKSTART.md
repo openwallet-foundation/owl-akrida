@@ -125,3 +125,11 @@ Now we will need to restart the services for the .env file to update the Locust 
 docker-compose -f docker-compose.demo.yml down
 docker-compose -f docker-compose.demo.yml up
 ```
+
+## Performance Testing Basics
+
+Basic Performance Testing involves the following steps
+
+### Identify the test environment
+
+Identifying the physical test environment and production environment, as well as tools, 
