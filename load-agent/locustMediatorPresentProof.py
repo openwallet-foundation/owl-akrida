@@ -62,11 +62,11 @@ class UserBehaviour(SequentialTaskSet):
 
     @task
     def issuer_cleanup(self):
-        self.client.issuer_cleanup()
+        self.client.issuer_cleanup(self.invite["connection_id"])
 
     @task
     def verifier_cleanup(self):
-        self.client.verifier_cleanup()
+        self.client.verifier_cleanup(self.verifier_invite["connection_id"])
 
 
 class Issue(CustomLocust):

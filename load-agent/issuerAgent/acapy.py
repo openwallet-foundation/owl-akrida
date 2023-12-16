@@ -146,7 +146,7 @@ class AcapyIssuer(BaseIssuer):
                 )
                 r = r.json()
 
-        def clean_up(self):
+        def clean_up(self, connection_id):
             headers = json.loads(os.getenv("ISSUER_HEADERS"))
             headers["Content-Type"] = "application/json"
             # Hit delete endpoint with self.invite['connection_id']

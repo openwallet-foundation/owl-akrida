@@ -50,7 +50,7 @@ class UserBehaviour(SequentialTaskSet):
 
     @task(1)
     def issuer_cleanup(self):
-        self.client.issuer_cleanup()
+        self.client.issuer_cleanup(self.invite["connection_id"])
 
 
 class Issue(CustomLocust):

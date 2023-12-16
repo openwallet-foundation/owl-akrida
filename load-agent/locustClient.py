@@ -283,8 +283,8 @@ class CustomClient:
         return r
 
     @stopwatch
-    def issuer_cleanup(self):
-        return self.issuer.clean_up()
+    def issuer_cleanup(self, connection_id):
+        return self.issuer.clean_up(connection_id)
 
     @stopwatch
     def verifier_getinvite(self):
@@ -318,5 +318,5 @@ class CustomClient:
         return line
 
     @stopwatch
-    def verifier_cleanup(self):
-        return self.verifier.clean_up()
+    def verifier_cleanup(self, connection_id):
+        return self.verifier.clean_up(connection_id)

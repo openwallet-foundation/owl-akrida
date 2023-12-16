@@ -49,7 +49,7 @@ class UserBehaviour(SequentialTaskSet):
 
     @task
     def issuer_cleanup(self):
-        self.client.issuer_cleanup()
+        self.client.issuer_cleanup(self.invite["connection_id"])
 
 class IssueRevoke(CustomLocust):
     tasks = [UserBehaviour]
