@@ -135,11 +135,11 @@ class AcapyIssuer(BaseIssuer):
                 if r.status_code != 200:
                         raise Exception(r.content)
 
-        def clean_up_revoked_credential(self, credential):
+        def clean_up_revoked_credential(self, cred_ex_id):
             headers = json.loads(os.getenv("ISSUER_HEADERS"))
             headers["Content-Type"] = "application/json"
 
-            credential_id = credential["credential_exchange_id"]
+            credential_id = cred_ex_id 
 
             # Not sure why this is here?
             # (Leaving for testing purposes though)

@@ -49,7 +49,7 @@ class UserBehaviour(SequentialTaskSet):
 
     @task
     def clean_up_revoked_credential(self):
-        self.client.clean_up_revoked_credential(self.credential)
+        self.client.clean_up_revoked_credential(self.credential["cred_ex_id"])
 
 class IssueRevoke(CustomLocust):
     tasks = [UserBehaviour]
