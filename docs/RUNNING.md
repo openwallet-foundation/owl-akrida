@@ -6,7 +6,7 @@ For high concurrency testing, it is useful to run Locust on a VM where you can e
 
 ## Running Locally
 
-The following summarizes how to run the project locally and using a [VS Code DevContainer].
+Use the [Quick Start](./QUICKSTART.md) guide to run locally.
 
 ### DevContainer
 
@@ -75,6 +75,14 @@ docker-compose up
 # open web browser to localhost:8089
 # Use the interface to start and stop tests, review results
 ```
+
+### User Startup
+
+When starting up the Users for tests, the Aries Framework Javascript(AFJ) agents used for the Locust client may take more CPU than when running the test. Since the startup cost can be more expensive, you may either need a larger machine to onboard Users faster, or slow down the onboarding rate.
+
+Typically symptoms of starting agents to quickly is getting an timeout error on startup.
+
+Depending upon the test and the Minimum and Maximum wait times configured for the test, the number of Users you can run on a single Locust machine may vary. It is recommend to monitor CPU, memory utilization, and network usage in your environment so that you can tune the load test machine(s) appropriately.
 
 ## Issuer configuration
 
