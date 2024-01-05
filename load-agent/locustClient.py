@@ -96,14 +96,14 @@ class CustomClient:
         self.port = None
         self.withMediation = None
 
-        from issuerAgent.acapy import AcapyIssuer
-        from verifierAgent.acapy import AcapyVerifier
 
         # Load modules here depending on config
         if ISSUER_TYPE == 'acapy':
+            from issuerAgent.acapy import AcapyIssuer
             self.issuer = AcapyIssuer()
             
         if VERIFIER_TYPE == 'acapy':
+            from verifierAgent.acapy import AcapyVerifier
             self.verifier = AcapyVerifier()
             
     _locust_environment = None
