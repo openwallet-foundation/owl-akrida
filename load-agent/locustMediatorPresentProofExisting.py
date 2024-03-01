@@ -41,7 +41,7 @@ class UserBehaviour(SequentialTaskSet):
         credential = self.client.receive_credential(self.invite["connection_id"])
 
     def get_verifier_invite(self):
-        verifier_invite = self.client.issuer_getinvite()
+        verifier_invite = self.client.verifier_getinvite()
         self.verifier_invite = verifier_invite
 
     def accept_verifier_invite(self):
