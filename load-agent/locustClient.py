@@ -297,6 +297,10 @@ class CustomClient:
         self.verifier.verify_verification(pres_ex_id)
 
     @stopwatch
+    def verifier_connectionless_request(self):
+        return self.verifier.create_connectionless_request()
+    
+    @stopwatch
     def revoke_credential(self, credential):
         self.issuer.revoke_credential(
             credential['connection_id'],

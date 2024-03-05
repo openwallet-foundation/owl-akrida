@@ -78,6 +78,44 @@ class AcapyVerifier(BaseVerifier):
 
                 return True
 
+        def create_connectionless_request(self):
+                # Calling verification agent
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))
+                headers["Content-Type"] = "application/json"
+
+                # API call to /present-proof/create-request
+                r = requests.post(
+                        os.getenv("VERIFIER_URL") + "/present-proof/create-request",
+                        json={
+                                "auto_remove": False,
+                                "auto_verify": True,
+                                "comment": "Performance Verification",
+                                "proof_request": {
+                                "name": "PerfScore",
+                                "requested_attributes": {
+                                        item["name"]: {"name": item["name"]}
+                                        for item in json.loads(os.getenv("CRED_ATTR"))
+                                },
+                                "requested_predicates": {},
+                                "version": "1.0",
+                                },
+                                "trace": True,
+                        },
+                        headers=headers,
+                )
+
+                try:
+                        if r.status_code != 200:
+                                raise Exception("Request was not successful: ", r.content)
+                except JSONDecodeError as e:
+                        raise Exception(
+                                "Encountered JSONDecodeError while parsing the request: ", r
+                        )
+                
+                r = r.json()
+
+                return r
+        
         def request_verification(self, connection_id):
                 # From verification side
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
