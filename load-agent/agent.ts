@@ -271,6 +271,15 @@ const pingMediator = async (agent) => {
   }
 }
 
+let deleteOobRecordById = async (agent, id) => {
+  try {
+    const resp = await agent.oob.deleteById(id);
+    
+  } catch (error) {
+    process.stderr.write('ERROR'+ '\n' + error + '\n')
+  }
+};
+
 let receiveInvitation = async (agent, invitationUrl) => {
   // wait for the connection
   let timeout = config.verified_timeout_seconds * 1000
@@ -577,6 +586,12 @@ rl.on('line', async (line) => {
       await pingMediator(agent)
       process.stdout.write(
         JSON.stringify({ error: 0, result: 'Ping Mediator' }) + '\n'
+      )
+    } else if (command['cmd'] == 'deleteOobRecordById') {
+      await deleteOobRecordById(agent, command['id'])
+
+      process.stdout.write(
+        JSON.stringify({ error: 0, result: 'Delete OOB Record' }) + '\n'
       )
     } else if (command['cmd'] == 'receiveInvitation') {
       let connection = await receiveInvitation(agent, command['invitationUrl'])
