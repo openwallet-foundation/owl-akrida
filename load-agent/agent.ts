@@ -272,12 +272,7 @@ const pingMediator = async (agent) => {
 }
 
 let deleteOobRecordById = async (agent, id) => {
-  try {
-    const resp = await agent.oob.deleteById(id);
-    
-  } catch (error) {
-    process.stderr.write('ERROR'+ '\n' + error + '\n')
-  }
+  await agent.oob.deleteById(id);
 };
 
 let receiveInvitation = async (agent, invitationUrl) => {
