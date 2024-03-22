@@ -29,6 +29,7 @@ import {
   CredentialState,
   DidCommMimeType, 
   DidExchangeState,
+  DidRepository,
   DidsModule, 
   HttpOutboundTransport,
   LogLevel, 
@@ -325,6 +326,73 @@ let receiveInvitation = async (agent, invitationUrl) => {
   return outOfBandRecord
 }
 
+let receiveInvitationConnectionDid = async (agent, invitationUrl) => {
+  let timeout = config.verified_timeout_seconds * 1000
+  const TimeDelay = new Promise((resolve, reject) => {
+    setTimeout(resolve, timeout, false)
+  })
+
+  var def = deferred()
+
+  var onConnection = async (event) => {
+    {
+      let payload = event.payload
+      if (
+        payload.connectionRecord.state === DidExchangeState.Completed
+      ) {
+        agent.events.off(
+          ConnectionEventTypes.ConnectionStateChanged,
+          onConnection
+        )
+
+        def.resolve(true)
+      }
+    }
+  }
+
+  agent.events.on(
+    ConnectionEventTypes.ConnectionStateChanged,
+    onConnection
+  )
+
+  let legacyConnectionDid = undefined;
+  let connectionId = undefined;
+  let oobRecordId = undefined;
+  try {
+    // LO: need connection record, not OOB record since we need the connection DID
+    const { outOfBandRecord, connectionRecord } = await agent.oob.receiveInvitationFromUrl(
+      invitationUrl
+    )
+    const strRes = JSON.stringify(connectionRecord)
+    connectionId = connectionRecord.id;
+    oobRecordId = outOfBandRecord.id;
+
+    // LO: retrieve the legacy DID. IAS controller needs that to issue against
+    // This code adapted from https://github.com/bcgov/bc-wallet-mobile/blob/main/app/src/helpers/BCIDHelper.ts
+    const legacyDidKey = '_internal/legacyDid' // TODO:(from BC Wallet code) Waiting for AFJ export of this.
+    const didRepository = agent.dependencyManager.resolve(DidRepository)  
+    const dids = await didRepository.getAll(agent.context)
+    const didRecord = dids.filter((d) => d.did === connectionRecord?.did).pop()
+    legacyConnectionDid = didRecord.metadata.get(legacyDidKey)!.unqualifiedDid
+  } catch (error) {
+    process.stderr.write('******** ERROR'+ '\n' + error + '\n')
+  }
+
+  // wait for connection
+  let value = await Promise.race([TimeDelay, def.promise])
+
+  if (!value) {
+    // we no longer need to listen to the event in case of failure
+    agent.events.off(
+      ConnectionEventTypes.ConnectionStateChanged,
+      onConnection
+    )
+    throw 'Connection timeout!'
+  }
+
+  return { did: legacyConnectionDid, connectionId: connectionId, oobRecordId: oobRecordId}
+}
+
 let receiveCredential = async (agent) => {
   // wait for the ping
   let timeout = config.verified_timeout_seconds * 1000
@@ -517,6 +585,16 @@ rl.on('line', async (line) => {
         JSON.stringify({
           error: 0,
           result: 'Receive Connection',
+          connection: connection,
+        }) + '\n'
+      )
+    } else if (command['cmd'] == 'receiveInvitationConnectionDid') {
+      let connection = await receiveInvitationConnectionDid(agent, command['invitationUrl'])
+
+      process.stdout.write(
+        JSON.stringify({
+          error: 0,
+          result: 'Receive Invitation Connection',
           connection: connection,
         }) + '\n'
       )

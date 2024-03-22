@@ -267,9 +267,12 @@ class CustomClient:
         return self.issuer.is_up()
 
     @stopwatch
-    def accept_invite(self, invite):
+    def accept_invite(self, invite, useConnectionDid=False):
         try:
-            self.run_command({"cmd": "receiveInvitation", "invitationUrl": invite})
+            if useConnectionDid:
+                self.run_command({"cmd": "receiveInvitationConnectionDid", "invitationUrl": invite})
+            else:
+                self.run_command({"cmd": "receiveInvitation", "invitationUrl": invite})
         except Exception:
             self.run_command({"cmd": "receiveInvitation", "invitationUrl": invite})
 
