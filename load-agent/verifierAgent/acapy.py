@@ -11,14 +11,14 @@ VERIFIED_TIMEOUT_SECONDS = int(os.getenv("VERIFIED_TIMEOUT_SECONDS", 20))
 class AcapyVerifier(BaseVerifier):
 
         def get_invite(self, out_of_band=False):
-                headers = json.loads(os.getenv("ISSUER_HEADERS"))
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))
                 headers["Content-Type"] = "application/json"
 
                 if out_of_band:
                         # Out of Band Connection 
                         # (ACA-Py v10.4 - only works with connections protocol, not DIDExchange) 
                         r = requests.post(
-                                os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
+                                os.getenv("VERIFIER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
                                 json={
                                 "metadata": {}, 
                                 "handshake_protocols": ["https://didcomm.org/connections/1.0"]
@@ -28,7 +28,7 @@ class AcapyVerifier(BaseVerifier):
                 else:
                         # Regular Connection
                         r = requests.post(
-                                os.getenv("ISSUER_URL") + "/connections/create-invitation?auto_accept=true",
+                                os.getenv("VERIFIER_URL") + "/connections/create-invitation?auto_accept=true",
                                 json={"metadata": {}, "my_label": "Test"},
                                 headers=headers,
                         )
@@ -47,7 +47,7 @@ class AcapyVerifier(BaseVerifier):
                 if out_of_band:
                         invitation_msg_id = r['invi_msg_id']
                         g = requests.get(
-                                os.getenv("ISSUER_URL") + "/connections",
+                                os.getenv("VERIFIER_URL") + "/connections",
                                 params={"invitation_msg_id": invitation_msg_id},
                                 headers=headers,
                         )
@@ -78,6 +78,44 @@ class AcapyVerifier(BaseVerifier):
 
                 return True
 
+        def create_connectionless_request(self):
+                # Calling verification agent
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))
+                headers["Content-Type"] = "application/json"
+
+                # API call to /present-proof/create-request
+                r = requests.post(
+                        os.getenv("VERIFIER_URL") + "/present-proof/create-request",
+                        json={
+                                "auto_remove": False,
+                                "auto_verify": True,
+                                "comment": "Performance Verification",
+                                "proof_request": {
+                                "name": "PerfScore",
+                                "requested_attributes": {
+                                        item["name"]: {"name": item["name"]}
+                                        for item in json.loads(os.getenv("CRED_ATTR"))
+                                },
+                                "requested_predicates": {},
+                                "version": "1.0",
+                                },
+                                "trace": True,
+                        },
+                        headers=headers,
+                )
+
+                try:
+                        if r.status_code != 200:
+                                raise Exception("Request was not successful: ", r.content)
+                except JSONDecodeError as e:
+                        raise Exception(
+                                "Encountered JSONDecodeError while parsing the request: ", r
+                        )
+                
+                r = r.json()
+
+                return r
+        
         def request_verification(self, connection_id):
                 # From verification side
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
@@ -130,7 +168,7 @@ class AcapyVerifier(BaseVerifier):
                 try:
                         while iteration < VERIFIED_TIMEOUT_SECONDS:
                                 g = requests.get(
-                                        os.getenv("ISSUER_URL") + f"/present-proof/records/{presentation_exchange_id}",
+                                        os.getenv("VERIFIER_URL") + f"/present-proof/records/{presentation_exchange_id}",
                                         headers=headers,
                                 )
                                 if (
@@ -155,7 +193,7 @@ class AcapyVerifier(BaseVerifier):
                 return True
 
         def send_message(self, connection_id, msg):
-                headers = json.loads(os.getenv("ISSUER_HEADERS"))
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))
                 headers["Content-Type"] = "application/json"
 
                 r = requests.post(

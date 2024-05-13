@@ -43,7 +43,7 @@ class UserBehaviour(SequentialTaskSet):
 
     @task
     def get_verifier_invite(self):
-        verifier_invite = self.client.issuer_getinvite()
+        verifier_invite = self.client.verifier_getinvite()
         self.verifier_invite = verifier_invite
 
     @task

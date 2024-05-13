@@ -30,7 +30,12 @@ MESSAGE_TO_SEND = os.getenv("MESSAGE_TO_SEND", "ping")
 ISSUER_TYPE = os.getenv("ISSUER_TYPE", "acapy")
 VERIFIER_TYPE = os.getenv("VERIFIER_TYPE", "acapy")
 
-OOB_INVITE = bool(os.getenv("OOB_INVITE", False))
+RAW_OOB_BOOL = os.getenv("OOB_INVITE")
+if RAW_OOB_BOOL == "False":
+    # Handles case when string False passed in (AKA accidentally evals to True)
+    OOB_INVITE = False
+else: 
+    OOB_INVITE = bool(os.getenv("OOB_INVITE", False))
 
 class PortManager:
     def __init__(self):
@@ -262,9 +267,18 @@ class CustomClient:
         return self.issuer.is_up()
 
     @stopwatch
-    def accept_invite(self, invite):
+    def delete_oob(self, id):
+        self.run_command({"cmd": "deleteOobRecordById", "id": id})
+
+        line = self.readjsonline()
+
+    @stopwatch
+    def accept_invite(self, invite, useConnectionDid=False):
         try:
-            self.run_command({"cmd": "receiveInvitation", "invitationUrl": invite})
+            if useConnectionDid:
+                self.run_command({"cmd": "receiveInvitationConnectionDid", "invitationUrl": invite})
+            else:
+                self.run_command({"cmd": "receiveInvitation", "invitationUrl": invite})
         except Exception:
             self.run_command({"cmd": "receiveInvitation", "invitationUrl": invite})
 
@@ -296,6 +310,10 @@ class CustomClient:
         
         self.verifier.verify_verification(pres_ex_id)
 
+    @stopwatch
+    def verifier_connectionless_request(self):
+        return self.verifier.create_connectionless_request()
+    
     @stopwatch
     def revoke_credential(self, credential):
         self.issuer.revoke_credential(
