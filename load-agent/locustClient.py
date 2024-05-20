@@ -101,14 +101,14 @@ class CustomClient:
         self.port = None
         self.withMediation = None
 
-        from issuerAgent.acapy import AcapyIssuer
-        from verifierAgent.acapy import AcapyVerifier
 
         # Load modules here depending on config
         if ISSUER_TYPE == 'acapy':
+            from issuerAgent.acapy import AcapyIssuer
             self.issuer = AcapyIssuer()
             
         if VERIFIER_TYPE == 'acapy':
+            from verifierAgent.acapy import AcapyVerifier
             self.verifier = AcapyVerifier()
             
     _locust_environment = None
@@ -259,8 +259,8 @@ class CustomClient:
         line = self.readjsonline()
 
     @stopwatch
-    def issuer_getinvite(self):
-        return self.issuer.get_invite(out_of_band=OOB_INVITE)
+    def issuer_getinvite(self, out_of_band=False):
+        return self.issuer.get_invite(out_of_band)
         
     @stopwatch
     def issuer_getliveness(self):
