@@ -142,17 +142,26 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
           indyProofFormat: legacyIndyProofFormat,
         }),
         new V2ProofProtocol({
-          proofFormats: [legacyIndyProofFormat, anonCredsProofFormatService],
+          proofFormats: [
+            legacyIndyProofFormat,
+            anonCredsProofFormatService,
+            new DifPresentationExchangeProofFormatService(),
+          ],
         }),
       ],
     }),
     credentials: new CredentialsModule({
+      autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       credentialProtocols: [
         new V1CredentialProtocol({
           indyCredentialFormat: legacyIndyCredentialFormat,
         }),
         new V2CredentialProtocol({
-          credentialFormats: [legacyIndyCredentialFormat,anonCredsCredentialFormatService],
+          credentialFormats: [
+            legacyIndyCredentialFormat,
+            new JsonLdCredentialFormatService(),
+            anonCredsCredentialFormatService,
+          ],
         }),
       ],
     }),
