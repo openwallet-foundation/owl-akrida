@@ -1,4 +1,5 @@
-FROM ubuntu:20.04 as base
+#FROM ubuntu:20.04 as base
+FROM docker.io/node:18.19.1-bullseye as base
 
 ARG LOADDIR="/load-agent"
 
@@ -11,10 +12,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update -y && apt-get install -y curl gcc g++ make git libssl-dev pkg-config
 
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-RUN apt-get update -y && apt-get install -y nodejs
+#RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+#RUN apt-get update -y && apt-get install -y nodejs
 
-RUN npm install --global yarn
+#RUN npm install --global yarn
 
 RUN yarn global add ts-node typescript
 
