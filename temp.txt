@@ -1,0 +1,10 @@
+Error with invite get
+Traceback (most recent call last):
+aries-akrida-load-agent-1   |   File "/usr/local/lib/python3.8/dist-packages/locust/user/task.py", line 347, in run
+aries-akrida-load-agent-1   |     self.execute_next_task()
+aries-akrida-load-agent-1   |   File "/usr/local/lib/python3.8/dist-packages/locust/user/task.py", line 372, in execute_next_task
+aries-akrida-load-agent-1   |     self.execute_task(self._task_queue.pop(0))
+aries-akrida-load-agent-1   |   File "/usr/local/lib/python3.8/dist-packages/locust/user/task.py", line 384, in execute_task
+aries-akrida-load-agent-1   |     task(self)
+aries-akrida-load-agent-1   |   File "/load-agent/load-agent/locustMediatorIssue.py", line 56, in accept_invite
+aries-akrida-load-agent-1   |     connection = self.client.accept_invite(self.invite['invitation_url']
