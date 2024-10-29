@@ -180,15 +180,9 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     modules: modules
   })
   
-    const apps = express()
     const wsTransport = new WsOutboundTransport()
     const httpTransport = new HttpOutboundTransport()
-    const httpInbound = new HttpInboundTransport({
-      port:4002,
-      app:apps,
-      path:'/'
-    })
-
+  
   
   // Register a simple `WebSocket` outbound transport
     agent.registerOutboundTransport(wsTransport)
@@ -250,7 +244,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       throw 'Mediator timeout!'
     }
   } else {
-
+    const httpInbound = new HttpInboundTransport({ port:port })
     agent.registerInboundTransport(httpInbound);
     await agent.initialize()
   }
