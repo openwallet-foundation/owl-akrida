@@ -5,3 +5,4 @@ load-agent/__pycache__
 aries-framework-javascript
 *.DS_Store
 node_modules
+*.pyc
