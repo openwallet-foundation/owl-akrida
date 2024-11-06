@@ -9,6 +9,7 @@ services:
     restart: unless-stopped
     user: root 
     tty: true
+    working_dir: /load-agent  # Set the working directory
     command: >
       locust -f ${LOCUST_FILES}
     ports:
