@@ -2,13 +2,14 @@ import {
   AnonCredsCredentialFormatService,
   AnonCredsModule, 
   AnonCredsProofFormatService, 
+  DataIntegrityCredentialFormatService, 
   LegacyIndyCredentialFormatService,
   LegacyIndyProofFormatService,
   V1CredentialProtocol, 
   V1ProofProtocol
 } from '@credo-ts/anoncreds';
 import {ariesAskar} from '@hyperledger/aries-askar-nodejs'
-import { IndyVdrAnonCredsRegistry, IndyVdrModule } from '@credo-ts/indy-vdr'
+import { IndyVdrAnonCredsRegistry, IndyVdrIndyDidResolver, IndyVdrModule, IndyVdrSovDidResolver } from '@credo-ts/indy-vdr'
 
 import { AskarModule } from '@credo-ts/askar'
 
@@ -17,6 +18,7 @@ import {
   AutoAcceptCredential, 
   BasicMessageEventTypes,
   ConnectionEventTypes,
+  ConnectionsModule,
   ConsoleLogger, 
   CredentialEventTypes,
   CredentialsModule, 
@@ -43,6 +45,8 @@ import {
   WebDidResolver, 
   WsOutboundTransport
 } from '@credo-ts/core';
+import { PushNotificationsFcmModule } from '@credo-ts/push-notifications';
+import { QuestionAnswerModule } from '@credo-ts/question-answer';
 
 import { 
   agentDependencies, 
@@ -129,11 +133,11 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     proofs: new ProofsModule({
       proofProtocols: [
         new V1ProofProtocol({
-          indyProofFormat: legacyIndyProofFormat,
+          indyProofFormat: new LegacyIndyProofFormatService(),
         }),
         new V2ProofProtocol({
           proofFormats: [
-            legacyIndyProofFormat,
+            new LegacyIndyProofFormatService(),
             new AnonCredsProofFormatService(),
             new DifPresentationExchangeProofFormatService(),
           ],
@@ -148,8 +152,9 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
         }),
         new V2CredentialProtocol({
           credentialFormats: [
-            legacyIndyCredentialFormat,
+            new LegacyIndyCredentialFormatService(),
             new JsonLdCredentialFormatService(),
+            new DataIntegrityCredentialFormatService(),
             new AnonCredsCredentialFormatService(),
           ],
         }),
@@ -157,8 +162,14 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     }),
     dids: new DidsModule({
       registrars: [new KeyDidRegistrar()],
-      resolvers: [new KeyDidResolver(), new WebDidResolver()],
+      resolvers: [new KeyDidResolver(), new WebDidResolver(), new IndyVdrSovDidResolver(), new IndyVdrIndyDidResolver()],
     }),
+    connections: new ConnectionsModule({
+      autoAcceptConnections: true
+    }),
+    pushNotificationsFcm: new PushNotificationsFcmModule(),
+    questionAnswer: new QuestionAnswerModule()
+
   }
 
   // configure mediator or endpoints
