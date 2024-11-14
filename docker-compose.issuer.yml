@@ -1,0 +1,75 @@
+version: '3'
+services:
+
+  # Issuer
+  issuer:
+    #image: ghcr.io/hyperledger/aries-cloudagent-python:py3.9-0.8.0-rc0
+    image: acapy-cache-redis
+    build:
+     context: ./instance-configs/acapy-agent
+     dockerfile: ./docker/Dockerfile
+    volumes:
+      - ./instance-configs/acapy-agent/configs:/home/indy/configs:ro,z
+    ports:
+      - "8150:8150"
+      - "8151:8151"
+    environment:
+      ACAPY_ADMIN_API_KEY: ""
+      ACAPY_ADMIN_INSECURE_MODE: true
+      ACAPY_WALLET_STORAGE_CONFIG: '{"url":"issuer-db:5432","max_connections":5}'
+      ACAPY_GENESIS_URL: ${ACAPY_GENESIS_URL}
+      ACAPY_WALLET_STORAGE_CREDS: '{"account":"test","password":"test","admin_account":"test","admin_password":"test"}'
+    #entrypoint: python -m cProfile -m aries_cloudagent
+    command: >
+      start
+        --arg-file ./configs/issuer.yml
+        --endpoint http://issuer:8151
+        --genesis-url ${ACAPY_GENESIS_URL}
+        --log-level debug
+        --plugin-config-value redis_cache.connection="redis://redis-host:6379/0"
+        --plugin-config-value redis_cache.max_connections=90
+    healthcheck:
+      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:8150/status/live" | grep "200" > /dev/null
+      start_period: 30s
+      interval: 7s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # databases to support aca-py
+  issuer-db:
+    image: postgres:14.3
+    hostname: issuer-db
+    restart: unless-stopped
+    ports: # Uncomment to access postgres outside of containers
+      - "5432:5432"
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    env_file:
+      - ./instance-configs/database/sample.env      
+    volumes:
+      - issuer-db:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  redis-host:
+    image: "redis:alpine"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    env_file:
+      - ./instance-configs/database/sample.env
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  issuer-db:   

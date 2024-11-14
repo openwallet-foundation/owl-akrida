@@ -31,6 +31,7 @@ services:
       - CRED_DEF=${CRED_DEF}
       - CRED_ATTR=${CRED_ATTR}
       - SCHEMA=${SCHEMA}
+      - CREDENTIAL_FORMAT=${CREDENTIAL_FORMAT}
       - LEDGER=${LEDGER}
       - START_PORT=${START_PORT}
       - END_PORT=${END_PORT}
