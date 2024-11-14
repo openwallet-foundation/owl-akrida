@@ -3,6 +3,7 @@ import json
 import os
 import requests
 import time
+from .utils.jsonldCredential import get_jsonld_credential_payload
 
 class AcapyIssuer(BaseIssuer):
         
@@ -111,6 +112,25 @@ class AcapyIssuer(BaseIssuer):
                         "cred_ex_id": r["credential_exchange_id"]
                 }
 
+        def issue_jsonld_credential(self, connection_id):
+                headers = json.loads(os.getenv("ISSUER_HEADERS"))
+                headers["Content-Type"] = "application/json"
+
+                r = requests.post(
+                        os.getenv("ISSUER_URL") + "/issue-credential-2.0/send-offer",
+                        # json=os.getenv("JSONLD_ISSUANCE_PAYLOAD") | get_jsonld_credential_payload(connection_id, "did:key:z6MkfW1eZVe6BEfqt5j2ddE3CVWmJ1jAnjk4tEbLka8Ndcpb"),
+                        json=os.getenv("JSONLD_ISSUANCE_PAYLOAD", default=get_jsonld_credential_payload(connection_id, "did:key:z6MkrwekPwftD7udLoF11GKSoqMcUYbGuJ14D1zBeFXRJiQv")),
+                        headers=headers,
+                )
+                if r.status_code != 200:
+                        raise Exception(r.content)
+
+                r = r.json()
+
+                return {
+                        "connection_id": r["connection_id"], 
+                        "cred_ex_id": r["cred_ex_id"]
+                }
         def revoke_credential(self, connection_id, credential_exchange_id):
                 headers = json.loads(os.getenv("ISSUER_HEADERS"))
                 headers["Content-Type"] = "application/json"
