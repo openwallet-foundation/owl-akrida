@@ -1,37 +1,39 @@
 import {
+  AnonCredsCredentialFormatService,
   AnonCredsModule, 
+  AnonCredsProofFormatService, 
+  DataIntegrityCredentialFormatService, 
   LegacyIndyCredentialFormatService,
   LegacyIndyProofFormatService,
   V1CredentialProtocol, 
   V1ProofProtocol
-} from '@aries-framework/anoncreds';
+} from '@credo-ts/anoncreds';
+import {ariesAskar} from '@hyperledger/aries-askar-nodejs'
+import { IndyVdrAnonCredsRegistry, IndyVdrIndyDidResolver, IndyVdrModule, IndyVdrSovDidResolver } from '@credo-ts/indy-vdr'
 
-import {
-  IndySdkAnonCredsRegistry, 
-  IndySdkModule, 
-  IndySdkIndyDidRegistrar, 
-  IndySdkSovDidResolver, 
-  IndySdkIndyDidResolver
-} from '@aries-framework/indy-sdk'
-
-var indySdk = require('indy-sdk')
-
-// import { ariesAskar } from '@hyperledger/aries-askar-react-native'
-// import { AskarModule } from '@aries-framework/askar'
+import { AskarModule } from '@credo-ts/askar'
 
 import {
   Agent, 
+  AutoAcceptCredential, 
   BasicMessageEventTypes,
   ConnectionEventTypes,
+  ConnectionsModule,
   ConsoleLogger, 
   CredentialEventTypes,
   CredentialsModule, 
   CredentialState,
   DidCommMimeType, 
   DidExchangeState,
+  DidRecord,
   DidRepository,
   DidsModule, 
+  DifPresentationExchangeProofFormatService, 
   HttpOutboundTransport,
+  JsonLdCredentialFormatService,
+  KeyDidRegistrar,
+  KeyDidResolver,
+  KeyType,
   LogLevel, 
   MediationRecipientModule, 
   MediatorPickupStrategy, 
@@ -42,13 +44,18 @@ import {
   TrustPingEventTypes,
   V2CredentialProtocol, 
   V2ProofProtocol, 
+  WebDidResolver, 
   WsOutboundTransport
-} from '@aries-framework/core';
+} from '@credo-ts/core';
+import { PushNotificationsFcmModule } from '@credo-ts/push-notifications';
+import { QuestionAnswerModule } from '@credo-ts/question-answer';
 
 import { 
   agentDependencies, 
   HttpInboundTransport 
-} from '@aries-framework/node';
+} from '@credo-ts/node';
+import { anoncreds } from '@hyperledger/anoncreds-nodejs';
+import { indyVdr } from '@hyperledger/indy-vdr-nodejs';
 
 var config = require('./config.js')
 
@@ -95,45 +102,62 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
   }
 
   let modules = {
-    indySdk: new IndySdkModule({
-      indySdk,
-      networks: [config.ledger]
+    indyVdr: new IndyVdrModule({
+      indyVdr,
+      networks: [config.ledger],
     }),
-    // askar: new AskarModule({
-    //   ariesAskar,
-    // }),
+    askar: new AskarModule({
+      ariesAskar,
+    }),
     mediationRecipient: new MediationRecipientModule({
       mediatorInvitationUrl: mediation_url,
-//      mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
-      mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
+      mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2LiveMode,
+      // mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
     }),
     anoncreds: new AnonCredsModule({
-      registries: [new IndySdkAnonCredsRegistry()],
+      registries: [new IndyVdrAnonCredsRegistry()],
+      anoncreds,
     }),
     proofs: new ProofsModule({
       proofProtocols: [
         new V1ProofProtocol({
-          indyProofFormat: legacyIndyProofFormat,
+          indyProofFormat: new LegacyIndyProofFormatService(),
         }),
         new V2ProofProtocol({
-          proofFormats: [legacyIndyProofFormat],
+          proofFormats: [
+            new LegacyIndyProofFormatService(),
+            new AnonCredsProofFormatService(),
+            new DifPresentationExchangeProofFormatService(),
+          ],
         }),
       ],
     }),
     credentials: new CredentialsModule({
+      autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       credentialProtocols: [
         new V1CredentialProtocol({
           indyCredentialFormat: legacyIndyCredentialFormat,
         }),
         new V2CredentialProtocol({
-          credentialFormats: [legacyIndyCredentialFormat],
+          credentialFormats: [
+            new LegacyIndyCredentialFormatService(),
+            new JsonLdCredentialFormatService(),
+            new DataIntegrityCredentialFormatService(),
+            new AnonCredsCredentialFormatService(),
+          ],
         }),
       ],
     }),
     dids: new DidsModule({
-      registrars: [new IndySdkIndyDidRegistrar()],
-      resolvers: [new IndySdkSovDidResolver(), new IndySdkIndyDidResolver()],
-    })
+      registrars: [new KeyDidRegistrar()],
+      resolvers: [new KeyDidResolver(), new WebDidResolver(), new IndyVdrSovDidResolver(), new IndyVdrIndyDidResolver()],
+    }),
+    connections: new ConnectionsModule({
+      autoAcceptConnections: true
+    }),
+    pushNotificationsFcm: new PushNotificationsFcmModule(),
+    questionAnswer: new QuestionAnswerModule()
+
   }
 
   // configure mediator or endpoints
@@ -539,6 +563,43 @@ let receiveMessage = async (agent) => {
   }
 }
 
+let getDefaultHolderDidKeyDocument = async (agent) => {
+  try {
+    let defaultDidRecord: DidRecord | null
+    const didRepository = await agent.dependencyManager.resolve(DidRepository)
+
+    defaultDidRecord = await didRepository.findSingleByQuery(agent.context, {
+      isDefault: true,
+    })
+
+    if (!defaultDidRecord) {
+      const did = await agent.dids.create({
+        method: 'key',
+        options: {
+          keyType: KeyType.Ed25519,
+        },
+      })
+
+      const [didRecord] = await agent.dids.getCreatedDids({
+        did: did.didState.did,
+        method: 'key',
+      })
+
+      didRecord.setTag('isDefault', true)
+
+      await didRepository.update(agent.context, didRecord)
+      defaultDidRecord = didRecord
+    }
+
+    const resolvedDidDocument = await agent.dids.resolveDidDocument(defaultDidRecord.did)
+    // console.log('This is resolved did document::::', JSON.stringify(resolvedDidDocument, null, 2))
+    return resolvedDidDocument
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Error did create', error)
+  }
+}
+
 var readline = require('readline')
 
 var rl = readline.createInterface(process.stdin, null)
@@ -587,6 +648,11 @@ rl.on('line', async (line) => {
 
       process.stdout.write(
         JSON.stringify({ error: 0, result: 'Delete OOB Record' }) + '\n'
+      )
+    } else if (command['cmd'] == 'createHolderDIDKey') {
+      let didResult = await getDefaultHolderDidKeyDocument(agent)
+      process.stdout.write(
+        JSON.stringify({ error: 0, did: didResult,result: 'Created did:key for holder' }) + '\n'
       )
     } else if (command['cmd'] == 'receiveInvitation') {
       let connection = await receiveInvitation(agent, command['invitationUrl'])
