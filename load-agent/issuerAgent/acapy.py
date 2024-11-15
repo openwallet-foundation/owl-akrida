@@ -124,7 +124,6 @@ class AcapyIssuer(BaseIssuer):
                 else:
                         json_data=get_jsonld_credential_payload(connection_id, os.getenv("JSONLD_ISSUANCE_DID"), didKey)
                         
-                print(f"This is json_data::::: {json_data}")
                 r = requests.post(
                         os.getenv("ISSUER_URL") + "/issue-credential-2.0/send-offer",
                         json=json_data,

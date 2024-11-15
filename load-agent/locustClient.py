@@ -297,9 +297,6 @@ class CustomClient:
     def receive_credential(self, connection_id, didKey):
         self.run_command({"cmd": "receiveCredential"})
         credential_format = os.getenv("CREDENTIAL_FORMAT", default="indy")
-        print(f"this is credential_format: {credential_format}")
-        print(f'this is os.getenv("CREDENTIAL_FORMAT") { os.getenv("CREDENTIAL_FORMAT")}')
-        print(f'print os.environ::::{os.environ}')
         if credential_format == "indy":
             r = self.issuer.issue_credential(connection_id)
         elif credential_format == "jsonld":
