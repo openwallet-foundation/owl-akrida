@@ -164,11 +164,7 @@ class AcapyVerifier(BaseVerifier):
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
                 headers["Content-Type"] = "application/json"
 
-                # verifier_did = os.getenv("CRED_DEF").split(":")[0]
-                # schema_parts = os.getenv("SCHEMA").split(":")
-
-                # Might need to change nonce
-                # TO DO: Generalize schema parts
+                # TO DO: Create generic presentproof or through env
                 r = requests.post(
                         os.getenv("VERIFIER_URL") + "/present-proof-2.0/send-request",
                         json={
