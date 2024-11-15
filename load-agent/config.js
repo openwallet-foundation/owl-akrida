@@ -37,7 +37,7 @@ if (process.env.LEDGER == "bcovrin") {
   };
 } else if (process.env.ledger == "indicio:demonet") {
   ledger = {
-    genesisPath: "./networks/indicio-demo.txn",
+    genesisTransactions: "./networks/indicio-demo.txn",
     id: "IndicioDemo",
     indyNamespace: 'did:indy:indicio:demo',
     isProduction: false,
@@ -45,7 +45,7 @@ if (process.env.LEDGER == "bcovrin") {
   }
 } else if (process.env.ledger == "bcovrin:testnet") {
   ledger = {
-    genesisPath: "./networks/bcovrin-test.txn",
+    genesisTransactions: "./networks/bcovrin-test.txn",
     id: "BcovrinTest",
     indyNamespace: 'did:indy:bcovrin:test',
     isProduction: false,
