@@ -102,12 +102,9 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
   }
 
   let modules = {
-    // indySdk: new IndySdkModule({
-    //   indySdk,
-    //   networks: [config.ledger]
-    // }),
     indyVdr: new IndyVdrModule({
       indyVdr,
+      // TO DO: Get networks from config (networks: [config.ledger])
       networks: [
         {
           isProduction: false,
