@@ -6,7 +6,7 @@ let ledger = {};
 
 if (process.env.LEDGER == "bcovrin") {
   ledger = {
-    genesisPath: "./networks/BCovrintest.txn",
+    genesisTransactions: "./networks/BCovrintest.txn",
     id: "BCovrinTest",
     indyNamespace: 'bcovrin:test',
     isProduction: false,
@@ -14,7 +14,7 @@ if (process.env.LEDGER == "bcovrin") {
   };
 } else if (process.env.LEDGER == "candy") {
   ledger = {
-    genesisPath: "./networks/CANdy.txn",
+    genesisTransactions: "./networks/CANdy.txn",
     id: "CANdyDev",
     indyNamespace: 'did:indy:candy:dev',
     isProduction: false,
@@ -22,7 +22,7 @@ if (process.env.LEDGER == "bcovrin") {
   };
 } else if (process.env.LEDGER == "indicio") {
   ledger = {
-    genesisPath: "./networks/indicio-test.txn",
+    genesisTransactions: "./networks/indicio-test.txn",
     id: "IndicioTest",
     indyNamespace: 'did:indy:indicio:test',
     isProduction: false,
@@ -30,7 +30,7 @@ if (process.env.LEDGER == "bcovrin") {
   };
 } else if (process.env.ledger == "indicio:demonet") {
   ledger = {
-    genesisPath: "./networks/indicio-demo.txn",
+    genesisTransactions: "./networks/indicio-demo.txn",
     id: "IndicioDemo",
     indyNamespace: 'did:indy:indicio:demo',
     isProduction: false,
@@ -38,7 +38,7 @@ if (process.env.LEDGER == "bcovrin") {
   }
 } else if (process.env.ledger == "bcovrin:testnet") {
   ledger = {
-    genesisPath: "./networks/bcovrin-test.txn",
+    genesisTransactions: "./networks/bcovrin-test.txn",
     id: "BcovrinTest",
     indyNamespace: 'did:indy:bcovrin:test',
     isProduction: false,
