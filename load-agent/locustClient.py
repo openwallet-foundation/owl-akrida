@@ -259,6 +259,13 @@ class CustomClient:
         line = self.readjsonline()
 
     @stopwatch
+    def create_holder_didKey(self):
+        self.run_command({"cmd": "createHolderDIDKey"})
+        
+        line = self.readjsonline()
+        return line['did']['id']
+
+    @stopwatch
     def issuer_getinvite(self, out_of_band=False):
         return self.issuer.get_invite(out_of_band)
         
@@ -273,7 +280,7 @@ class CustomClient:
         line = self.readjsonline()
 
     @stopwatch
-    def accept_invite(self, invite, useConnectionDid=False):
+    def accept_invite(self, invite,useConnectionDid=False):
         try:
             if useConnectionDid:
                 self.run_command({"cmd": "receiveInvitationConnectionDid", "invitationUrl": invite})
@@ -287,7 +294,7 @@ class CustomClient:
         return line["connection"]
 
     @stopwatch
-    def receive_credential(self, connection_id):
+    def receive_credential(self, connection_id, didKey):
         self.run_command({"cmd": "receiveCredential"})
         credential_format = os.getenv("CREDENTIAL_FORMAT", default="indy")
         print(f"this is credential_format: {credential_format}")
@@ -296,7 +303,7 @@ class CustomClient:
         if credential_format == "indy":
             r = self.issuer.issue_credential(connection_id)
         elif credential_format == "jsonld":
-            r = self.issuer.issue_jsonld_credential(connection_id)
+            r = self.issuer.issue_jsonld_credential(connection_id, didKey)
         else:
             raise TypeError({"Unsupported file format": credential_format})
             # return {"Unsupported file format": credential_format}   
@@ -312,8 +319,15 @@ class CustomClient:
     @stopwatch
     def presentation_exchange(self, connection_id):
         self.run_command({"cmd": "presentationExchange"})
+        
+        credential_format = os.getenv("CREDENTIAL_FORMAT", default="indy")
 
-        pres_ex_id = self.verifier.request_verification(connection_id)
+        if credential_format == "indy":
+            pres_ex_id = self.verifier.request_verification(connection_id)
+        elif credential_format == "jsonld":
+            pres_ex_id = self.verifier.request_jsonld_verification(connection_id)
+        else:
+            raise TypeError({"Unsupported file format": credential_format})
 
         line = self.readjsonline()
         

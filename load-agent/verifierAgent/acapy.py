@@ -158,6 +158,77 @@ class AcapyVerifier(BaseVerifier):
                 r = r.json()
 
                 return r['presentation_exchange_id']
+        
+        def request_jsonld_verification(self, connection_id):
+                # From verification side
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
+                headers["Content-Type"] = "application/json"
+
+                # verifier_did = os.getenv("CRED_DEF").split(":")[0]
+                # schema_parts = os.getenv("SCHEMA").split(":")
+
+                # Might need to change nonce
+                # TO DO: Generalize schema parts
+                r = requests.post(
+                        os.getenv("VERIFIER_URL") + "/present-proof-2.0/send-request",
+                        json={
+                                "auto_remove": False,
+                                "connection_id": connection_id,
+                                "auto_verify": True,
+                                "trace": True,
+                                "comment": "Degree certificate verification using Aries Akrida",
+                                "presentation_request": {
+                                        "dif": {
+                                        "presentation_definition": {
+                                                "format": {
+                                                "ldp_vp": {
+                                                        "proof_type": [
+                                                        "Ed25519Signature2018"
+                                                        ]
+                                                }
+                                                },
+                                                "input_descriptors": [
+                                                {
+                                                        "name": "Degree",
+                                                        "schema": [
+                                                        {
+                                                                "uri": "https://www.w3.org/2018/credentials/examples/v1"
+                                                        }
+                                                        ],
+                                                        "constraints": {
+                                                        "fields": [
+                                                                {
+                                                                "path": [
+                                                                        "$.credentialSubject.degree.type"
+                                                                ]
+                                                                },
+                                                                {
+                                                                "path": [
+                                                                        "$.credentialSubject.degree.name"
+                                                                ]
+                                                                }
+                                                        ]
+                                                        }
+                                                }
+                                                ]
+                                        }
+                                        }
+                                }
+                                },
+                        headers=headers,
+                )
+
+                try:
+                        if r.status_code != 200:
+                                raise Exception("Request was not successful: ", r.content)
+                except JSONDecodeError as e:
+                        raise Exception(
+                                "Encountered JSONDecodeError while parsing the request: ", r
+                        )
+                
+                r = r.json()
+
+                return r['pres_ex_id']
 
         def verify_verification(self, presentation_exchange_id):
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
