@@ -23,13 +23,6 @@ RUN apt-get install -y libsodium-dev libzmq3-dev
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rust.sh && sh -- rust.sh -y
 
-# RUN git clone https://github.com/hyperledger/indy-sdk
-
-# RUN cd indy-sdk/libindy && \
-#     git checkout v1.16.0 && \
-#     /root/.cargo/bin/cargo build --release && \
-#     mv target/release/libindy.so /usr/lib/libindy.so
-
 # Setup Locust
 
 RUN apt-get install -y python3-pip
