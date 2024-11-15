@@ -112,14 +112,22 @@ class AcapyIssuer(BaseIssuer):
                         "cred_ex_id": r["credential_exchange_id"]
                 }
 
-        def issue_jsonld_credential(self, connection_id):
+        def issue_jsonld_credential(self, connection_id, didKey):
                 headers = json.loads(os.getenv("ISSUER_HEADERS"))
                 headers["Content-Type"] = "application/json"
 
+                json_data=os.getenv("JSONLD_ISSUANCE_PAYLOAD")
+                if (json_data):
+                        json_data = json.loads(json_data)
+                        json_data['connection_id']=connection_id
+                        json_data['filter']['ld_proof']['credential']['credentialSubject']['id'] = didKey
+                else:
+                        json_data=get_jsonld_credential_payload(connection_id, os.getenv("JSONLD_ISSUANCE_DID"), didKey)
+                        
+                print(f"This is json_data::::: {json_data}")
                 r = requests.post(
                         os.getenv("ISSUER_URL") + "/issue-credential-2.0/send-offer",
-                        # json=os.getenv("JSONLD_ISSUANCE_PAYLOAD") | get_jsonld_credential_payload(connection_id, "did:key:z6MkfW1eZVe6BEfqt5j2ddE3CVWmJ1jAnjk4tEbLka8Ndcpb"),
-                        json=os.getenv("JSONLD_ISSUANCE_PAYLOAD", default=get_jsonld_credential_payload(connection_id, "did:key:z6MkrwekPwftD7udLoF11GKSoqMcUYbGuJ14D1zBeFXRJiQv")),
+                        json=json_data,
                         headers=headers,
                 )
                 if r.status_code != 200:

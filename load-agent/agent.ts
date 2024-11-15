@@ -25,6 +25,7 @@ import {
   CredentialState,
   DidCommMimeType, 
   DidExchangeState,
+  DidRecord,
   DidRepository,
   DidsModule, 
   DifPresentationExchangeProofFormatService, 
@@ -32,6 +33,7 @@ import {
   JsonLdCredentialFormatService,
   KeyDidRegistrar,
   KeyDidResolver,
+  KeyType,
   LogLevel, 
   MediationRecipientModule, 
   MediatorPickupStrategy, 
@@ -587,6 +589,43 @@ let receiveMessage = async (agent) => {
   }
 }
 
+let getDefaultHolderDidKeyDocument = async (agent) => {
+  try {
+    let defaultDidRecord: DidRecord | null
+    const didRepository = await agent.dependencyManager.resolve(DidRepository)
+
+    defaultDidRecord = await didRepository.findSingleByQuery(agent.context, {
+      isDefault: true,
+    })
+
+    if (!defaultDidRecord) {
+      const did = await agent.dids.create({
+        method: 'key',
+        options: {
+          keyType: KeyType.Ed25519,
+        },
+      })
+
+      const [didRecord] = await agent.dids.getCreatedDids({
+        did: did.didState.did,
+        method: 'key',
+      })
+
+      didRecord.setTag('isDefault', true)
+
+      await didRepository.update(agent.context, didRecord)
+      defaultDidRecord = didRecord
+    }
+
+    const resolvedDidDocument = await agent.dids.resolveDidDocument(defaultDidRecord.did)
+    // console.log('This is resolved did document::::', JSON.stringify(resolvedDidDocument, null, 2))
+    return resolvedDidDocument
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Error did create', error)
+  }
+}
+
 var readline = require('readline')
 
 var rl = readline.createInterface(process.stdin, null)
@@ -635,6 +674,11 @@ rl.on('line', async (line) => {
 
       process.stdout.write(
         JSON.stringify({ error: 0, result: 'Delete OOB Record' }) + '\n'
+      )
+    } else if (command['cmd'] == 'createHolderDIDKey') {
+      let didResult = await getDefaultHolderDidKeyDocument(agent)
+      process.stdout.write(
+        JSON.stringify({ error: 0, did: didResult,result: 'Created did:key for holder' }) + '\n'
       )
     } else if (command['cmd'] == 'receiveInvitation') {
       let connection = await receiveInvitation(agent, command['invitationUrl'])
