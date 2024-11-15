@@ -28,6 +28,22 @@ if (process.env.LEDGER == "bcovrin") {
     isProduction: false,
     connectOnStartup: true,
   };
+} else if (process.env.ledger == "indicio:demonet") {
+  ledger = {
+    genesisPath: "./networks/indicio-demo.txn",
+    id: "IndicioDemo",
+    indyNamespace: 'did:indy:indicio:demo',
+    isProduction: false,
+    connectOnStartup: true,
+  }
+} else if (process.env.ledger == "bcovrin:testnet") {
+  ledger = {
+    genesisPath: "./networks/bcovrin-test.txn",
+    id: "BcovrinTest",
+    indyNamespace: 'did:indy:bcovrin:test',
+    isProduction: false,
+    connectOnStartup: true,
+  }
 }
 
 exports.mediation_url = process.env.MEDIATION_URL;
