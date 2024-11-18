@@ -16,7 +16,7 @@ if (process.env.LEDGER == "bcovrin") {
   ledger = {
     genesisPath: "./networks/CANdy.txn",
     id: "CANdyDev",
-    indyNamespace: 'did:indy:candy:dev',
+    indyNamespace: 'candy:dev',
     isProduction: false,
     connectOnStartup: true,
   };
@@ -24,7 +24,7 @@ if (process.env.LEDGER == "bcovrin") {
   ledger = {
     genesisPath: "./networks/indicio-test.txn",
     id: "IndicioTest",
-    indyNamespace: 'did:indy:indicio:test',
+    indyNamespace: 'indicio:test',
     isProduction: false,
     connectOnStartup: true,
   };
