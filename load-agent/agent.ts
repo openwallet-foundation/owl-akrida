@@ -1,64 +1,77 @@
 import {
-  AnonCredsModule, 
+  AnonCredsCredentialFormatService,
+  AnonCredsModule,
+  AnonCredsProofFormatService,
   LegacyIndyCredentialFormatService,
   LegacyIndyProofFormatService,
-  V1CredentialProtocol, 
-  V1ProofProtocol
-} from '@aries-framework/anoncreds';
+  V1CredentialProtocol,
+  V1ProofProtocol,
+} from '@credo-ts/anoncreds'
 
 import {
-  IndySdkAnonCredsRegistry, 
-  IndySdkModule, 
-  IndySdkIndyDidRegistrar, 
-  IndySdkSovDidResolver, 
-  IndySdkIndyDidResolver
-} from '@aries-framework/indy-sdk'
+  IndyVdrAnonCredsRegistry,
+  IndyVdrIndyDidResolver,
+  IndyVdrModule,
+  IndyVdrIndyDidRegistrar,
+  IndyVdrPoolConfig,
+} from '@credo-ts/indy-vdr'
 
-var indySdk = require('indy-sdk')
-
+// var indySdk = require('indy-sdk')
+import { AskarModule, AskarMultiWalletDatabaseScheme } from '@credo-ts/askar'
 // import { ariesAskar } from '@hyperledger/aries-askar-react-native'
 // import { AskarModule } from '@aries-framework/askar'
 
 import {
-  Agent, 
-  BasicMessageEventTypes,
-  ConnectionEventTypes,
-  ConsoleLogger, 
-  CredentialEventTypes,
-  CredentialsModule, 
-  CredentialState,
-  DidCommMimeType, 
-  DidExchangeState,
-  DidRepository,
-  DidsModule, 
+  AutoAcceptCredential,
+  AutoAcceptProof,
+  DidsModule,
+  ProofsModule,
+  V2ProofProtocol,
+  CredentialsModule,
+  V2CredentialProtocol,
+  ConnectionsModule,
+  W3cCredentialsModule,
+  KeyDidRegistrar,
+  KeyDidResolver,
+  CacheModule,
+  InMemoryLruCache,
+  WebDidResolver,
   HttpOutboundTransport,
-  LogLevel, 
-  MediationRecipientModule, 
-  MediatorPickupStrategy, 
+  WsOutboundTransport,
+  LogLevel,
+  Agent,
+  JsonLdCredentialFormatService,
+  DifPresentationExchangeProofFormatService,
+  MediationRecipientModule,
+  MediatorPickupStrategy,
+
+  CredentialEventTypes,
   ProofEventTypes,
-  ProofsModule, 
-  ProofState,
+  MediatorModule,
+  DidCommMimeType,
   TransportEventTypes,
   TrustPingEventTypes,
-  V2CredentialProtocol, 
-  V2ProofProtocol, 
-  WsOutboundTransport
-} from '@aries-framework/core';
-
-import { 
-  agentDependencies, 
-  HttpInboundTransport 
-} from '@aries-framework/node';
+  DidExchangeState,
+  ConnectionEventTypes,
+  DidRepository,
+  CredentialState,
+  ProofState,
+  BasicMessageEventTypes,
+} from '@credo-ts/core'
+import { anoncreds } from '@hyperledger/anoncreds-nodejs'
+import { ariesAskar } from '@hyperledger/aries-askar-nodejs'
+import { indyVdr } from '@hyperledger/indy-vdr-nodejs'
+import { agentDependencies, HttpInboundTransport, WsInboundTransport } from '@credo-ts/node'
 
 var config = require('./config.js')
 
 var deferred = require('deferred')
 var process = require('process')
+var readline = require('readline')
 
 const characters =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-const legacyIndyCredentialFormat = new LegacyIndyCredentialFormatService()
-const legacyIndyProofFormat = new LegacyIndyProofFormatService()
+
 
 function generateString(length) {
   let result = ''
@@ -74,7 +87,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
   // Simple agent configuration. This sets some basic fields like the wallet
   // configuration and the label. It also sets the mediator invitation url,
   // because this is most likely required in a mobile environment.
-
+  try {
   let mediation_url = config.mediation_url
   let endpoints = ['http://' + config.agent_ip + ':' + port]
 
@@ -82,33 +95,46 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     agentConfig = {
       label: generateString(14),
       walletConfig: {
-        id: generateString(32),
-        key: generateString(32),
+        id:  generateString(32),
+        key:  generateString(32),
       },
       autoAcceptConnections: true,
       endpoints: endpoints,
-
+      mediation_url:mediation_url,
       autoAcceptInvitation: true,
       // logger: new ConsoleLogger(LogLevel.trace),
-      didCommMimeType: DidCommMimeType.V0,
+      didCommMimeType: DidCommMimeType.V1,
     }
   }
 
+  const legacyIndyCredentialFormat = new LegacyIndyCredentialFormatService()
+  const legacyIndyProofFormat = new LegacyIndyProofFormatService()
+  const anonCredsCredentialFormatService = new AnonCredsCredentialFormatService()
+  const anonCredsProofFormatService = new AnonCredsProofFormatService()
+
+
+  
   let modules = {
-    indySdk: new IndySdkModule({
-      indySdk,
+    indyVdr: new IndyVdrModule({
+      indyVdr,
       networks: [config.ledger]
     }),
-    // askar: new AskarModule({
-    //   ariesAskar,
+    askar: new AskarModule({
+      ariesAskar,
+    }),
+    // mediator: new MediatorModule({
+    //   autoAcceptMediationRequests: true,
     // }),
     mediationRecipient: new MediationRecipientModule({
       mediatorInvitationUrl: mediation_url,
-//      mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2,
       mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
     }),
     anoncreds: new AnonCredsModule({
-      registries: [new IndySdkAnonCredsRegistry()],
+      registries: [new IndyVdrAnonCredsRegistry()],
+      anoncreds
+    }),
+    connections: new ConnectionsModule({
+      autoAcceptConnections: true,
     }),
     proofs: new ProofsModule({
       proofProtocols: [
@@ -116,7 +142,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
           indyProofFormat: legacyIndyProofFormat,
         }),
         new V2ProofProtocol({
-          proofFormats: [legacyIndyProofFormat],
+          proofFormats: [legacyIndyProofFormat, anonCredsProofFormatService],
         }),
       ],
     }),
@@ -126,14 +152,14 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
           indyCredentialFormat: legacyIndyCredentialFormat,
         }),
         new V2CredentialProtocol({
-          credentialFormats: [legacyIndyCredentialFormat],
+          credentialFormats: [legacyIndyCredentialFormat,anonCredsCredentialFormatService],
         }),
       ],
     }),
     dids: new DidsModule({
-      registrars: [new IndySdkIndyDidRegistrar()],
-      resolvers: [new IndySdkSovDidResolver(), new IndySdkIndyDidResolver()],
-    })
+      registrars: [new IndyVdrIndyDidRegistrar(), new KeyDidRegistrar()],
+      resolvers: [new IndyVdrIndyDidResolver(), new KeyDidResolver(), new WebDidResolver()],
+    }),
   }
 
   // configure mediator or endpoints
@@ -149,12 +175,16 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     dependencies: agentDependencies,
     modules: modules
   })
-
+  
+    const wsTransport = new WsOutboundTransport()
+    const httpTransport = new HttpOutboundTransport()
+  
+  
   // Register a simple `WebSocket` outbound transport
-  agent.registerOutboundTransport(new WsOutboundTransport())
+    agent.registerOutboundTransport(wsTransport)
 
   // Register a simple `Http` outbound transport
-  agent.registerOutboundTransport(new HttpOutboundTransport())
+    agent.registerOutboundTransport(httpTransport)
 
   if (withMediation) {
     // wait for medation to be configured
@@ -210,13 +240,18 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       throw 'Mediator timeout!'
     }
   } else {
-    agent.registerInboundTransport(
-      new HttpInboundTransport({ port: port })
-    )
+    const httpInbound = new HttpInboundTransport({ port:port })
+    agent.registerInboundTransport(httpInbound);
     await agent.initialize()
   }
 
   return [agent, agentConfig]
+
+  } catch (error) {
+
+    process.stderr.write('******** ERROR Error at intialize agent'+ '\n' + error + '\n')
+  }
+  
 }
 
 const pingMediator = async (agent) => {
@@ -412,14 +447,12 @@ let receiveCredential = async (agent) => {
 
     switch (payload.credentialRecord.state) {
       case CredentialState.OfferReceived:
-        //console.log('received a credential')
         // custom logic here
         await agent.credentials.acceptOffer({
           credentialRecordId: payload.credentialRecord.id,
         })
         break
       case CredentialState.CredentialReceived:
-        //console.log(`Credential for credential id ${payload.credentialRecord.id} is accepted`)
         // For demo purposes we exit the program here.
 
         agent.events.off(
@@ -539,7 +572,7 @@ let receiveMessage = async (agent) => {
   }
 }
 
-var readline = require('readline')
+// var readline = require('readline')
 
 var rl = readline.createInterface(process.stdin, null)
 
@@ -556,7 +589,7 @@ const handleError = async (e) => {
 rl.on('line', async (line) => {
   try {
     var command = JSON.parse(line)
-
+    // console.log('command: ',command);
     if (command['cmd'] == 'start') {
       [agent, agentConfig] = await initializeAgent(
         command['withMediation'],
