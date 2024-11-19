@@ -44,8 +44,7 @@ import {
   DifPresentationExchangeProofFormatService,
   MediationRecipientModule,
   MediatorPickupStrategy,
-  ConnectionInvitationMessage,
-  AgentEventTypes,
+
   CredentialEventTypes,
   ProofEventTypes,
   MediatorModule,
@@ -63,7 +62,6 @@ import { anoncreds } from '@hyperledger/anoncreds-nodejs'
 import { ariesAskar } from '@hyperledger/aries-askar-nodejs'
 import { indyVdr } from '@hyperledger/indy-vdr-nodejs'
 import { agentDependencies, HttpInboundTransport, WsInboundTransport } from '@credo-ts/node'
-import express from 'express'
 
 var config = require('./config.js')
 
@@ -73,8 +71,7 @@ var readline = require('readline')
 
 const characters =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-const legacyIndyCredentialFormat = new LegacyIndyCredentialFormatService()
-const legacyIndyProofFormat = new LegacyIndyProofFormatService()
+
 
 function generateString(length) {
   let result = ''
@@ -112,7 +109,6 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
 
   const legacyIndyCredentialFormat = new LegacyIndyCredentialFormatService()
   const legacyIndyProofFormat = new LegacyIndyProofFormatService()
-  const jsonLdCredentialFormatService = new JsonLdCredentialFormatService()
   const anonCredsCredentialFormatService = new AnonCredsCredentialFormatService()
   const anonCredsProofFormatService = new AnonCredsProofFormatService()
 
