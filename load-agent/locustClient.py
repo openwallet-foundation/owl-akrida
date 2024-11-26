@@ -1,3 +1,4 @@
+import logging
 from locust import events
 from json.decoder import JSONDecodeError
 import time
@@ -17,7 +18,7 @@ from gevent import lock as gevent_lock
 
 from uuid import uuid4
 
-SHUTDOWN_TIMEOUT_SECONDS = 10
+SHUTDOWN_TIMEOUT_SECONDS = 20
 READ_TIMEOUT_SECONDS = 120  # stdout feedback
 ERRORS_BEFORE_RESTART = 10
 # How long to wait for verified = true state
@@ -130,6 +131,7 @@ class CustomClient:
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
+                stderr=None,
                 shell=False,
             )
 
@@ -266,11 +268,13 @@ class CustomClient:
     def issuer_getliveness(self):
         return self.issuer.is_up()
 
-    @stopwatch
-    def delete_oob(self, id):
-        self.run_command({"cmd": "deleteOobRecordById", "id": id})
+    logging.basicConfig(level=logging.INFO)  # Set up logging
 
+    @stopwatch
+    def delete_oob(self):
+        self.run_command({"cmd": "deleteOobRecordById"})
         line = self.readjsonline()
+        return line
 
     @stopwatch
     def accept_invite(self, invite, useConnectionDid=False):
@@ -295,6 +299,29 @@ class CustomClient:
         line = self.readjsonline()
 
         return r
+    
+
+
+    @stopwatch
+    def receive_credential_v_2_0(self, connection_id):
+        self.run_command({"cmd": "receiveCredential"})
+        
+        r = self.issuer.issue_credential_ver2_0(connection_id)
+
+        line = self.readjsonline()
+
+        return r
+    
+    
+    @stopwatch
+    def receive_credential_non_revo(self, connection_id):
+        self.run_command({"cmd": "receiveCredential"})
+
+        r = self.issuer.issue_non_revo_credential(connection_id)
+
+        line = self.readjsonline()
+
+        return r
 
     @stopwatch
     def verifier_getinvite(self):
@@ -310,6 +337,14 @@ class CustomClient:
         
         self.verifier.verify_verification(pres_ex_id)
 
+
+    @stopwatch
+    def presentation_exchange_2_0(self, connection_id):
+        self.run_command({"cmd": "presentationExchange"})
+        pres_ex_id = self.verifier.request_verification_2_0(connection_id)
+        line = self.readjsonline()
+        self.verifier.verify_verification_2_0(pres_ex_id)
+
     @stopwatch
     def verifier_connectionless_request(self):
         return self.verifier.create_connectionless_request()
@@ -320,6 +355,17 @@ class CustomClient:
             credential['connection_id'],
             credential['cred_ex_id']
         )
+
+
+    @stopwatch
+    def revoke_credential_non_revo(self, credential):
+        self.issuer.revoke_non_revo_credential(
+            credential['connection_id'],
+            credential['cred_ex_id']
+        )
+
+
+
 
     @stopwatch
     def msg_client(self, connection_id):

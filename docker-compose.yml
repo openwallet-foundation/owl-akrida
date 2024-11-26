@@ -1,6 +1,6 @@
 version: '3'
-services:
 
+services:
   load-agent:
     build:
       context: .
@@ -10,38 +10,53 @@ services:
     user: root 
     tty: true
     command: >
-      locust -f ${LOCUST_FILES} 
+      locust -f ${LOCUST_FILES}
     ports:
       - "8089:8089"
       - "8090:8090"
       - "${START_PORT}-${END_PORT}:${START_PORT}-${END_PORT}"
     environment: 
+      # General Settings
       - NODE_ENV=${NODE_ENV}
-      - BROWSER=none  # don't open the web browser
+      - BROWSER=none
+
+      # Mediation and Agent Settings
       - MEDIATION_URL=${MEDIATION_URL}
-      - LOCUST_MIN_WAIT=${LOCUST_MIN_WAIT} # time between pings
-      - LOCUST_MAX_WAIT=${LOCUST_MAX_WAIT} # time between pings
+      - WITH_MEDIATION=${WITH_MEDIATION}
+      
+      # Locust Settings
+      - LOCUST_MIN_WAIT=${LOCUST_MIN_WAIT}
+      - LOCUST_MAX_WAIT=${LOCUST_MAX_WAIT}
+      - MESSAGE_TO_SEND=${MESSAGE_TO_SEND}
+      
+      # Issuer and Verifier Settings
+      - ISSUER_TYPE=${ISSUER_TYPE}
       - ISSUER_URL=${ISSUER_URL}
       - ISSUER_HEADERS=${ISSUER_HEADERS}
+      - VERIFIER_TYPE=${VERIFIER_TYPE}
       - VERIFIER_URL=${VERIFIER_URL}
       - VERIFIER_HEADERS=${VERIFIER_HEADERS}
-      - ISSUER_TYPE=${ISSUER_TYPE}
-      - VERIFIER_TYPE=${VERIFIER_TYPE}
-      - AGENT_IP=${AGENT_IP}
+      
+      # Credential and Schema Settings
       - CRED_DEF=${CRED_DEF}
+      - CRED_DEF_NR=${CRED_DEF_NR}
       - CRED_ATTR=${CRED_ATTR}
+      - CRED_ATTR_NR=${CRED_ATTR_NR}
       - SCHEMA=${SCHEMA}
+      - SCHEMA_NR=${SCHEMA_NR}
+      
+      # Ledger and Timeout Settings
       - LEDGER=${LEDGER}
+      - VERIFIED_TIMEOUT_SECONDS=${VERIFIED_TIMEOUT_SECONDS}
+      
+      # Port Settings
       - START_PORT=${START_PORT}
       - END_PORT=${END_PORT}
-      - MESSAGE_TO_SEND=${MESSAGE_TO_SEND}
-      - VERIFIED_TIMEOUT_SECONDS=${VERIFIED_TIMEOUT_SECONDS}
-      - WITH_MEDIATION=${WITH_MEDIATION}
-      - OOB_INVITE=${OOB_INVITE}
+      
     networks:
       - app-network
 
-#Docker Networks
+# Docker Networks
 networks:
   app-network:
     driver: bridge
