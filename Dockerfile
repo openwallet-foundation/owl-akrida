@@ -1,5 +1,5 @@
-#FROM ubuntu:20.04 as base
-FROM docker.io/node:18.19.1-bullseye as base
+#FROM ubuntu:20.04 AS base
+FROM docker.io/node:18.19.1-bullseye AS base
 
 ARG LOADDIR="/load-agent"
 
@@ -36,7 +36,7 @@ RUN apt-get install -y python3-pip
 
 RUN pip3 install locust==2.14.2
 
-FROM base as dev
+FROM base AS dev
 
 # Setup Dev environment
 RUN apt-get install -y tmux htop
@@ -46,7 +46,7 @@ ARG LOADDIR
 # Set working directory to function root directory
 WORKDIR ${LOADDIR}
 
-FROM base as release
+FROM base AS release
 
 # Include global arg in this stage of the build
 ARG LOADDIR
