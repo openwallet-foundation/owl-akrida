@@ -302,8 +302,7 @@ class CustomClient:
         elif credential_format == "jsonld":
             r = self.issuer.issue_jsonld_credential(connection_id, didKey)
         else:
-            raise TypeError({"Unsupported file format": credential_format})
-            # return {"Unsupported file format": credential_format}   
+            raise TypeError({"Unsupported Credential format": credential_format})
 
         line = self.readjsonline()
 
@@ -315,16 +314,17 @@ class CustomClient:
 
     @stopwatch
     def presentation_exchange(self, connection_id):
-        self.run_command({"cmd": "presentationExchange"})
         
         credential_format = os.getenv("CREDENTIAL_FORMAT", default="indy")
 
         if credential_format == "indy":
+            self.run_command({"cmd": "presentationExchange"})
             pres_ex_id = self.verifier.request_verification(connection_id)
         elif credential_format == "jsonld":
+            self.run_command({"cmd": "w3cPresentationExchange"})
             pres_ex_id = self.verifier.request_jsonld_verification(connection_id)
         else:
-            raise TypeError({"Unsupported file format": credential_format})
+            raise TypeError({"Unsupported Credential format": credential_format})
 
         line = self.readjsonline()
         

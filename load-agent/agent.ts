@@ -548,6 +548,53 @@ let presentationExchange = async (agent) => {
   }
 }
 
+// w3cPresentationExchange
+let w3cPresentationExchange = async (agent: Agent) => {
+  // wait for the ping
+  let timeout = config.verified_timeout_seconds * 1000
+
+  const TimeDelay = new Promise((resolve, reject) => {
+    setTimeout(resolve, timeout, false)
+  })
+
+  var def = deferred()
+
+  let onRequest = async (event) => {
+    let payload = event.payload
+
+    switch (payload.proofRecord.state) {
+      case ProofState.RequestReceived:
+        const requestedCredentials =
+          await agent.proofs.selectCredentialsForRequest({
+            proofRecordId: payload.proofRecord.id,
+            // config: {
+            //   filterByPresentationPreview: true,
+            // },
+          })
+
+        requestedCredentials.proofFormats
+        await agent.proofs.acceptRequest({
+          proofRecordId: payload.proofRecord.id,
+          proofFormats: requestedCredentials.proofFormats,
+        })
+        agent.events.off(ProofEventTypes.ProofStateChanged, onRequest)
+        def.resolve(true)
+        break
+    }
+  }
+
+  agent.events.on(ProofEventTypes.ProofStateChanged, onRequest)
+
+  // Wait for presentation
+  let value = await Promise.race([TimeDelay, def.promise])
+
+  if (!value) {
+    // No longer need to listen to the event in case of failure
+    agent.events.off(ProofEventTypes.ProofStateChanged, onRequest)
+    throw 'Presentation timeout!'
+  }
+}
+
 let receiveMessage = async (agent) => {
   // wait for the ping
   let timeout = config.verified_timeout_seconds * 1000
@@ -713,6 +760,12 @@ rl.on('line', async (line) => {
 
       process.stdout.write(
         JSON.stringify({ error: 0, result: 'Presentation Exchange' }) + '\n'
+      )
+    } else if (command['cmd'] == 'w3cPresentationExchange') {
+      await w3cPresentationExchange(agent)
+
+      process.stdout.write(
+        JSON.stringify({ error: 0, result: 'w3c Presentation Exchange' }) + '\n'
       )
     } else if (command['cmd'] == 'receiveMessage') {
       await receiveMessage(agent)
