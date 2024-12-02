@@ -21,7 +21,7 @@ class AcapyVerifier(BaseVerifier):
                                 os.getenv("VERIFIER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
                                 json={
                                 "metadata": {}, 
-                                "handshake_protocols": ["https://didcomm.org/connections/1.0"]
+                                "handshake_protocols": ["https://didcomm.org/didexchange/1.1"]
                                 },
                                 headers=headers
                         )

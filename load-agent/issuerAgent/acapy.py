@@ -18,7 +18,7 @@ class AcapyIssuer(BaseIssuer):
                                 os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
                                 json={
                                 "metadata": {}, 
-                                "handshake_protocols": ["https://didcomm.org/connections/1.0"]
+                                "handshake_protocols": ["https://didcomm.org/didexchange/1.1"]
                                 },
                                 headers=headers
                         )
@@ -94,8 +94,9 @@ class AcapyIssuer(BaseIssuer):
                                 "attributes": json.loads(os.getenv("CRED_ATTR")),
                                 },
                                 
+                                "issuer_did": issuer_did,
                                 "schema_id": os.getenv("SCHEMA"),
-                              
+                                "schema_issuer_did": schema_parts[0],
                                 "schema_name": schema_parts[2],
                                 "schema_version": schema_parts[3],
                                 "trace": True,

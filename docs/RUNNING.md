@@ -208,7 +208,7 @@ It can be seen that the process uses a unique 49280 kB, but since the RssFile ca
 
 
 
-## Using Wallet type as Askar-Anoncreds instead of Askar (to be used with AIP2.0)
+## Using Wallet type as Askar-Anoncreds instead of Askar
 
 *  Delete old containers
 * In issuer.yml (instance-configs/acapy-agent/configs/issuer.yml) and change  

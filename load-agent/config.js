@@ -23,7 +23,7 @@ if (process.env.LEDGER == "bcovrin") {
   ledger = {
     genesisTransactions: ReadGenesisTransactions("./networks/CANdy.txn"),
     id: "CANdyDev",
-    indyNamespace: 'candy:dev',
+    indyNamespace: 'did:indy:candy:dev',
     isProduction: false,
     connectOnStartup: true,
   };
@@ -31,7 +31,7 @@ if (process.env.LEDGER == "bcovrin") {
   ledger = {
     genesisTransactions: ReadGenesisTransactions("./networks/indicio-test.txn"),
     id: "IndicioTest",
-    indyNamespace: 'indicio:test',
+    indyNamespace: 'did:indy:indicio:test',
     isProduction: false,
     connectOnStartup: true,
   };
