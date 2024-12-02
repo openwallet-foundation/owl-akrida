@@ -9,6 +9,7 @@ services:
     restart: unless-stopped
     user: root 
     tty: true
+    working_dir: /load-agent  # Set the working directory
     command: >
       locust -f ${LOCUST_FILES}
     ports:
@@ -30,6 +31,10 @@ services:
       - CRED_DEF=${CRED_DEF}
       - CRED_ATTR=${CRED_ATTR}
       - SCHEMA=${SCHEMA}
+      - CREDENTIAL_FORMAT=${CREDENTIAL_FORMAT}
+      - JSONLD_ISSUANCE_PAYLOAD=${JSONLD_ISSUANCE_PAYLOAD}
+      - JSONLD_ISSUANCE_DID=${JSONLD_ISSUANCE_DID}
+      - JSONLD_VERIFICATION_PAYLOAD=${JSONLD_VERIFICATION_PAYLOAD}
       - LEDGER=${LEDGER}
       - START_PORT=${START_PORT}
       - END_PORT=${END_PORT}
