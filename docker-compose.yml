@@ -1,6 +1,5 @@
-version: '3'
-
 services:
+
   load-agent:
     build:
       context: .
