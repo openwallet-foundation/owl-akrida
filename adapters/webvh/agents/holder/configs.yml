@@ -17,7 +17,7 @@ wallet-type: askar-anoncreds
 
 multitenant: true
 multitenant-admin: true
-multitenant-jwt-secret: unsecured
+jwt-secret: unsecured
 
 auto-ping-connection: true
 auto-accept-invites: true
