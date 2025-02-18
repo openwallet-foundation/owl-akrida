@@ -8,7 +8,7 @@ inbound-transport:
 outbound-transport: [ws, http]
 
 no-ledger: true
-tails-server-url: https://tails.test-suite.app
+# tails-server-url: https://tails.test-suite.app
 
 auto-provision: true
 recreate-wallet: false
