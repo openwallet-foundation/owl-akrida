@@ -2,14 +2,13 @@ import uuid
 import secrets
 import hashlib
 import requests
+from settings import Settings
 
-class AgentController:
-    def __init__(self, webvh_server, admin_endpoint, admin_api_key=None):
-        self.admin_endpoint = admin_endpoint
-        self.admin_api_key = admin_api_key
-        self.webvh_server = webvh_server
-        self.webvh_namespace = 'akrida'
-        self.admin_headers = {'X-API-KEY': self.admin_api_key}
+class HolderController:
+    def __init__(self):
+        self.admin_endpoint = Settings.HOLDER_ADMIN_API
+        self.webvh_server = Settings.WEBVH_SERVER
+        self.webvh_namespace = Settings.WEBVH_NS
         
     def provision_client(self, invitation):
         self.client_id = str(uuid.uuid4())
@@ -18,7 +17,7 @@ class AgentController:
         self.wallet_id = wallet_info['wallet_id']
         
         token = wallet_info['token']
-        self.client_headers = {
+        self.headers = {
             'Authorization': f'Bearer {token}'
         }
         
@@ -28,37 +27,55 @@ class AgentController:
         )
         self.set_connection(f'{self.webvh_server}@witness')
         
+    def set_headers(self, token):
+        self.headers = {'Authorization': f'Bearer {token}'}
+        return self.headers
+        
     def set_connection(self, alias):
         r = requests.get(
             f'{self.admin_endpoint}/connections?alias={alias}',
-            headers=self.client_headers
+            headers=self.headers
         )
         self.connection_id = r.json()['results'][0]['connection_id']
         
-    def create_subwallet(self, client_id):
+    def accept_invitation(self, invitation):
+        alias = invitation.get('label')
+        self.connection_id = requests.post(
+            f'{self.admin_endpoint}/out-of-band/receive-invitation?alias={alias}',
+            headers=self.headers,
+            json=invitation
+        ).json().get('connection_id')
+        
+    def create_subwallet(self):
+        wallet_name = str(uuid.uuid4())
         r = requests.post(
             f'{self.admin_endpoint}/multitenancy/wallet',
-            headers=self.admin_headers,
             json={
-                'wallet_key': hashlib.md5(client_id).hexdigest(),
-                'wallet_name': client_id,
+                'wallet_key': hashlib.md5(wallet_name.encode()).hexdigest(),
+                'wallet_name': wallet_name,
                 'wallet_type': 'askar-anoncreds'
             }
         )
-        return r.json()
+        self.wallet_info = r.json()
+        self.wallet_id = self.wallet_info.get('wallet_id')
+        self.set_headers(self.wallet_info.get('token'))
+        return self.wallet_info
         
-    def create_webvh(self, wallet_name, invitation):
+    def configure_webvh(self, invitation_url):
         requests.post(
             f'{self.admin_endpoint}/did/webvh/configuration',
-            headers=self.client_headers,
+            headers=self.headers,
             json={
                 'server_url': self.webvh_server,
-                'witness_invitation': invitation
+                'witness_invitation': invitation_url
             }
         )
+        
+    def create_webvh(self, wallet_name, invitation_url):
+        self.configure_webvh(invitation_url)
         r = requests.post(
             f'{self.admin_endpoint}/did/webvh/create',
-            headers=self.client_headers,
+            headers=self.headers,
             json={
                 'options': {
                     'namespace': self.webvh_namespace,

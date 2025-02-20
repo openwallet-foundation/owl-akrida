@@ -6,3 +6,5 @@ aries-framework-javascript
 *.DS_Store
 node_modules
 .venv
+venv/
+__pycache__/

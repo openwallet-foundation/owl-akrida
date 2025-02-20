@@ -1,0 +1,7 @@
+:2019 {
+        @ws {
+                header Upgrade websocket
+        }
+        reverse_proxy {$AGENT_HOST}:8022
+        reverse_proxy @ws {$AGENT_HOST}:8021
+}
