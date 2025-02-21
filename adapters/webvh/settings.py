@@ -5,6 +5,7 @@ load_dotenv()
 class Settings(object):
     
     # WebVH settings
+    WITNESS_SEED: str = os.getenv('WITNESS_SEED', '00000000000000000000000000000000')
     WITNESS_KEY: str = os.getenv('WITNESS_KEY', 'z6MkgKA7yrw5kYSiDuQFcye4bMaJpcfHFry3Bx45pdWh3s8i')
     WEBVH_DOMAIN: str = os.getenv('WEBVH_DOMAIN', 'id.test-suite.app')
     WEBVH_SERVER: str = f'https://{WEBVH_DOMAIN}'
@@ -28,7 +29,6 @@ class Settings(object):
     CREDENTIAL_REVOC_SIZE: int = int(os.getenv('CREDENTIAL_REVOC_SIZE', 50))
     ISSUANCE_DELAY_LIMIT: int = int(os.getenv('ISSUANCE_DELAY_LIMIT', 10))
     VERIFICATION_DELAY_LIMIT: int = int(os.getenv('VERIFICATION_DELAY_LIMIT', 10))
-    CRED_DEF_ID: str = os.getenv('CRED_DEF_ID')
     CREDENTIAL: dict = {
         'name': 'TestSchema',
         'version': '1.0',

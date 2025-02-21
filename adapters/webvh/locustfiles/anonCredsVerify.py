@@ -11,6 +11,7 @@ def on_test_start(environment, **kwargs):
 class UserBehaviour(SequentialTaskSet):
     def on_start(self):
         issuer = IssuerController()
+        issuer.provision()
         
         holder = HolderController()
         holder.create_subwallet()

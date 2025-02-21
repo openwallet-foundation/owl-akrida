@@ -40,7 +40,6 @@
                 <div class="progress progress-sm">
                     <div class="progress-bar"></div>
                 </div>
-                <span id="time">00:00</span>
                 `;
                 document.getElementById("report-modal").innerHTML = `
                     <iframe src="{{ url_for('get_report') }}" width="100%" height="720" title="report"></iframe>
@@ -50,19 +49,17 @@
             function loadingModal() {
                 $('#testConfigForm').submit(function () {
                     document.getElementById("report").innerHTML = `
-                        <div class="text-secondary mb-1">Swarming Agent 🦗🦗🦗</div>
+                        <div class="text-secondary mb-1">Swarming Agent 🦗🦗🦗 <span id="time"></span></div>
                         <div class="progress progress-sm mb-1">
                             <div class="progress-bar progress-bar-indeterminate"></div>
                         </div>
-                        <span id="time"></span>
                     `;
                     var duration = $("#testConfigForm :input[name='duration']").val();
                     display = document.querySelector('#time');
+                    $('#submit').prop('disabled', true);
+                    {# $('#testConfigForm :input').prop('readonly', true);  #}
                     startTimer(duration, display);
                 })
-
-                {# $('#submit').prop('disabled', true); #}
-                {# $('#testConfigForm :input').prop('disabled', true);  #}
             }
             function startTimer(duration, display) {
                 var timer = duration, minutes, seconds;
