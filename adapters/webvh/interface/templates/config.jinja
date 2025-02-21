@@ -19,7 +19,7 @@
             {{ form.feature.label(for="floatingSelect") }}
         </div>
         {{ form.submit(class="btn w-100 mb-3", onClick="loadingModal()", id="submit") }}
-        <a href="#" class="btn w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modal-report">
+        <a href="#" class="btn w-100" data-bs-toggle="modal" data-bs-target="#modal-report">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round"
@@ -35,7 +35,12 @@
         </a>
         <script>
             function displayReport() {
-                document.getElementById("report").innerHTML = ``;
+                document.getElementById("report").innerHTML = `
+                <div class="text-secondary mb-1">No test running</div>
+                <div class="progress progress-sm mb-3">
+                    <div class="progress-bar"></div>
+                </div>
+                `;
                 document.getElementById("report-modal").innerHTML = `
                     <iframe src="{{ url_for('get_report') }}" width="100%" height="720" title="report"></iframe>
                 `;
@@ -44,8 +49,8 @@
             function loadingModal() {
                 $('#testConfigForm').submit(function () {
                     document.getElementById("report").innerHTML = `
-                        <div class="text-secondary">Swarming Agent 🦗🦗🦗</div>
-                        <div class="progress progress-sm">
+                        <div class="text-secondary mb-1">Swarming Agent 🦗🦗🦗</div>
+                        <div class="progress progress-sm mb-1">
                             <div class="progress-bar progress-bar-indeterminate"></div>
                         </div>
                         <span id="time"></span>
