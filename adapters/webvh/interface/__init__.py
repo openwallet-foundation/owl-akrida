@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, session
 from flask_wtf import FlaskForm
+from flask_avatars import Avatars
 from .storage import AskarStorage
 from locust.env import Environment
 from locust.log import setup_logging
@@ -16,6 +17,7 @@ from wtforms.widgets import RangeInput
 # from wtforms.widgets import html5
 import asyncio
 import uuid
+import hashlib
 from locustfiles import LOCUST_FILES
 import gevent
 
@@ -24,6 +26,8 @@ setup_logging("INFO")
 def create_app():
     app = Flask(__name__)
     app.secret_key = str(uuid.uuid4())
+    
+    Avatars(app)
 
     class LocustConfigForm(FlaskForm):
         feature = SelectField("Feature", [InputRequired()])
@@ -36,7 +40,7 @@ def create_app():
         session['swarm_max'] = 10
         session['minutes_max'] = 5
         if 'client_id' not in session:
-            session['client_id'] = str(uuid.uuid4())
+            session['client_id'] = hashlib.sha1(str(uuid.uuid4()).encode()).hexdigest()
             asyncio.run(AskarStorage().store('report', session['client_id'], {'message': 'Run your first test and your report will appear here!'}))
 
     @app.route("/", methods=["GET", "POST"])

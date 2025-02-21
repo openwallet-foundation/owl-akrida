@@ -11,35 +11,129 @@
     <title>OWL Akrida</title>
     <link rel="icon" href="https://avatars.githubusercontent.com/u/114502864" type="image/x-icon">
     <meta name="description" content="Simple Web Interface for conducting Akrida load testing!">
-    <meta name="twitter:image:src" content="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
-    <meta property="og:image" content="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
+    <meta name="twitter:image:src"
+        content="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
+    <meta property="og:image"
+        content="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
     <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/css/tabler.min.css" rel="stylesheet">
 </head>
 
-{% include('report-modal.jinja') %}
-<body class="d-flex flex-column">
+{# {% include('report-modal.jinja') %} #}
+
+<body>
     {# {% include('components/navbar.jinja')%} #}
     <div class="page page-center">
-        <div class="container container-lg">
-            <div class="text-center mb-4">
-                <center><img width="25%" alt=""
-                        src="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
-                </center>
-            </div>
-            <!-- Page body -->
-            <div class="card">
-                <div class="row g-0">
-                    <div class="col-12 col-md-3 border-end">
-                        {% include('config.jinja') %}
+        <header class="navbar navbar-expand-md d-print-none">
+            <div class="container-xl">
+                <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                    <a href=".">
+                        <img width="50%" alt=""
+                            src="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
+                    </a>
+                </div>
+                <div class="navbar-nav flex-row order-md-last">
+                    <div class="nav-item">
+                        <div class="nav-link d-flex lh-1 text-reset p-0">
+                            <span class="avatar avatar-sm"
+                                style="background-image: url({{ avatars.gravatar(session['client_id']) }})"></span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-12 col-md-9 d-flex flex-column">
-                        <div id="report" class="card-body"></div>
+                </div>
+        </header>
+        <div class="page-wrapper">
+            <div class="page-header d-print-none">
+                <div class="container-xl">
+                    <div class="row g-2 align-items-center">
+                        <div class="col">
+                            <!-- Page pre-title -->
+                            <div class="page-pretitle">
+                                Test-Suite
+                            </div>
+                            <h2 class="page-title">
+                                Akrida Load Testing
+                            </h2>
+                        </div>
+                        <!-- Page title actions -->
+                        <div class="col-auto ms-auto d-print-none">
+                            <div class="btn-list">
+                                <a href="#" id="report-modal-btn" class="btn btn-primary btn-5 d-none d-sm-inline-block"
+                                    data-bs-toggle="modal" data-bs-target="#modal-report">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon icon-tabler icons-tabler-outline icon-tabler-window-maximize">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path
+                                            d="M3 16m0 1a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1z" />
+                                        <path d="M4 12v-6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-6" />
+                                        <path d="M12 8h4v4" />
+                                        <path d="M16 8l-5 5" />
+                                    </svg>
+                                    View Report
+                                </a>
+                            </div>
+                            <div class="modal fade" id="modal-report" style="display: none;" aria-modal="true">
+                                <div class="modal-dialog modal-dialog-centered modal-full-width modal-dialog-scrollable"
+                                    role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Akrida Report</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div id="report-modal" class="modal-body"></div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+                                            <a href="{{ url_for('get_report') }}" class="btn" download>Download</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="page-body">
+
+                <div class="container-xl">
+                    <!-- Page body -->
+                    <div class="card">
+                        <div class="row g-0">
+                            <div class="col-12 col-md-3 border-end">
+                                {% include('config.jinja') %}
+                            </div>
+                            <div class="col-12 col-md-9 d-flex flex-column">
+                                <div id="report" class="card-body"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="footer footer-transparent d-print-none">
+                <div class="container-xl">
+                    <div class="row text-center align-items-center flex-row-reverse">
+                        <div class="col-lg-auto ms-lg-auto">
+                            <ul class="list-inline list-inline-dots mb-0">
+                                <li class="list-inline-item"><a
+                                        href="https://github.com/openwallet-foundation/owl-akrida" target="_blank"
+                                        class="link-secondary" rel="noopener">Source code</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                            <ul class="list-inline list-inline-dots mb-0">
+                                <li class="list-inline-item">
+                                    Copyright © 2025
+                                    <a href="." class="link-secondary">OWF</a>.
+                                    All rights reserved.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
-    {# {% include('components/footer.jinja')%} #}
     <!-- Libs JS -->
     <!-- Tabler Core -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>

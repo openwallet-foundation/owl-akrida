@@ -3,13 +3,14 @@ from settings import Settings
 from controllers import HolderController, IssuerController
 from utils import create_issue_credential_payload
 
-@events.test_start.add_listener
+@events.init.add_listener
 def on_test_start(environment, **kwargs):
     IssuerController().provision()
 
 class UserBehaviour(SequentialTaskSet):
     def on_start(self):
         issuer = IssuerController()
+        issuer.provision()
         
         holder = HolderController()
         holder.create_subwallet()

@@ -13,7 +13,8 @@ dependencies = [
     "flask (>=3.1.0,<4.0.0)",
     "aries-askar (>=0.4.3,<0.5.0)",
     "flask-wtf (>=1.2.2,<2.0.0)",
-    "wtforms (>=3.2.1,<4.0.0)"
+    "wtforms (>=3.2.1,<4.0.0)",
+    "flask-avatars (>=0.2.3,<0.3.0)",
 ]
 
 [tool.poetry]

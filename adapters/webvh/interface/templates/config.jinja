@@ -1,5 +1,5 @@
 <div class="card-body">
-    <h4 class="subheader">Akrida</h4>
+    <h4 class="subheader">Configuration</h4>
     <form method="post" id="testConfigForm">
         {{ form.csrf_token }}
 
@@ -25,16 +25,12 @@
                 document.getElementById("report").innerHTML  = `
                     <iframe src="{{ url_for('get_report') }}" width="100%" height="720" title="report"></iframe>
                 `;
+                document.getElementById("report-modal").innerHTML  = `
+                    <iframe src="{{ url_for('get_report') }}" width="100%" height="720" title="report"></iframe>
+                `;
                 $('#testConfigForm :input').prop('disabled', false); 
                 }
             function loadingModal() {
-                {# document.getElementById("report").innerHTML  = `
-                    <div class="text-secondary">Swarming Agent...</div>
-                    <div class="progress progress-sm">
-                        <div class="progress-bar progress-bar-indeterminate"></div>
-                    </div>
-                    <span id="time"></span>
-                `; #}
                 $('#testConfigForm').submit(function() {
                     // Get all the forms elements and their values in one step
                     document.getElementById("report").innerHTML  = `
@@ -47,11 +43,9 @@
                     var duration = $("#testConfigForm :input[name='duration']").val();
                     display = document.querySelector('#time');
                     startTimer(duration, display);
-                    {# $('#submit').prop('disabled', true); #}
-                    {# $('#testConfigForm :input').prop('disabled', true); #}
+                }).then(function() {
                 });
-                {# display = document.querySelector('#time'); #}
-                {# startTimer({{ duration }}, display); #}
+                
                 {# $('#submit').prop('disabled', true); #}
                 {# $('#testConfigForm :input').prop('disabled', true);  #}
             }
