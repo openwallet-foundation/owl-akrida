@@ -2,14 +2,16 @@ from aries_askar import Store
 import hashlib
 import json
 import logging
+from settings import Settings
 
 logger = logging.getLogger(__name__)
 
+
 class AskarStorage:
     def __init__(self):
-        self.db = 'sqlite://reports.db'
+        self.db = Settings.REPORTS_DB
         self.key = Store.generate_raw_key(
-            hashlib.md5('akrida'.encode()).hexdigest()
+            hashlib.md5(Settings.WITNESS_SEED.encode()).hexdigest()
         )
 
     async def provision(self, recreate=False):

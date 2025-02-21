@@ -1,4 +1,15 @@
 services:
+  akrida-web-ui:
+    build: .
+    environment:
+      ISSUER_ADMIN_API: http://api.issuer.docker.localhost
+      HOLDER_ADMIN_API: http://api.holder.docker.localhost
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.akrida-web-ui.rule=Host(`akrida.docker.localhost`)
+      - traefik.http.routers.akrida-web-ui.entrypoints=web
+      - traefik.http.services.akrida-web-ui.loadbalancer.server.port=5000
+
   issuer:
     build:
       context: ./docker/issuer
