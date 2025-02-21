@@ -15,6 +15,6 @@ COPY models ./models
 COPY interface ./interface
 COPY locustfiles ./locustfiles
 COPY controllers ./controllers
-COPY web_ui.py ./
+COPY web_ui.py settings.py ./
 
 CMD [ "python", "web_ui.py" ]
