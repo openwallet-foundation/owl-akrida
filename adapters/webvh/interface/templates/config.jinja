@@ -35,9 +35,8 @@
                 }
                 function loadingModal() {
                     $('#testConfigForm').submit(function () {
-                        // Get all the forms elements and their values in one step
                         document.getElementById("report").innerHTML = `
-                        <div class="text-secondary">Swarming Agent ... 🦗</div>
+                        <div class="text-secondary">Swarming Agent ... </div>
                         <div class="progress progress-sm">
                             <div class="progress-bar progress-bar-indeterminate"></div>
                         </div>
@@ -46,11 +45,10 @@
                         var duration = $("#testConfigForm :input[name='duration']").val();
                         display = document.querySelector('#time');
                         startTimer(duration, display);
-                    }).then(function () {
-                    });
+                    })
 
-                    {# $('#submit').prop('disabled', true); # }
-                    {# $('#testConfigForm :input').prop('disabled', true);  # }
+                    {# $('#submit').prop('disabled', true); #}
+                    {# $('#testConfigForm :input').prop('disabled', true);  #}
                 }
                 function startTimer(duration, display) {
                     var timer = duration, minutes, seconds;
