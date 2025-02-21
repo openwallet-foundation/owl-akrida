@@ -49,7 +49,7 @@ class RequestedPredicates(BaseModel):
     p_type: str = Field()
     p_value: int = Field()
 
-class AnonCredsProposal(BaseModel):
+class AnonCredsRequest(BaseModel):
     name: str = Field('Proof Request')
     nonce: str = Field()
     version: str = Field('1.0')
@@ -57,10 +57,10 @@ class AnonCredsProposal(BaseModel):
     requested_attributes: Dict[str, RequestedAttributes] = Field(None)
     requested_predicates: Dict[str, RequestedPredicates] = Field(None)
 
-class PresentationProposal(BaseModel):
-    anoncreds: AnonCredsProposal = Field()
+class PresentationRequest(BaseModel):
+    anoncreds: AnonCredsRequest = Field()
 
 class RequestPresentation(BaseModel):
     auto_remove: bool = Field(False)
     connection_id: str = Field()
-    presentation_proposal: PresentationProposal = Field()
+    presentation_request: PresentationRequest = Field()

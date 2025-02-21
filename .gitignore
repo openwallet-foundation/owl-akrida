@@ -1,4 +1,5 @@
 
+reports.db
 load-agent/node_modules
 load-agent/__pycache__
 .env

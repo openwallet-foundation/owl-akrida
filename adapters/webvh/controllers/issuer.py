@@ -16,7 +16,7 @@ class IssuerController:
         
     def provision(self):
         self.configure_webvh()
-        if not self.find_cred_def().get('credential_definition_ids')[0]:
+        if len(self.find_cred_def().get('credential_definition_ids')) == 0:
             self.create_webvh()
             self.setup_anoncreds()
         
@@ -160,6 +160,20 @@ class IssuerController:
         ):
         r = requests.get(
             f'{self.admin_api}/anoncreds/credential-definitions??schema_name={schema_name}&schema_version={schema_version}',
+            # headers=self.headers,
+        )
+        return r.json()
+    
+    def check_issuance(self, cred_ex_id):
+        r = requests.get(
+            f'{self.admin_api}/issue-credential-2.0/records/{cred_ex_id}',
+            # headers=self.headers,
+        )
+        return r.json()
+    
+    def verify_presentation(self, pres_ex_id):
+        r = requests.get(
+            f'{self.admin_api}/present-proof-2.0/records/{pres_ex_id}',
             # headers=self.headers,
         )
         return r.json()

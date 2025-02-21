@@ -7,10 +7,10 @@ from models.protocols import (
 )
 from models.protocols import (
     RequestPresentation, 
-    PresentationProposal, 
+    PresentationRequest, 
     RequestedAttributes, 
     RequestedPredicates, 
-    AnonCredsProposal,
+    AnonCredsRequest,
     Restriction,
     NonRevocationInterval
 )
@@ -34,8 +34,8 @@ def create_issue_credential_payload(issuer_id, cred_def_id, connection_id, attri
 def create_request_presentation_payload(cred_def_id, connection_id, attributes, predicate, timestamp):
     return RequestPresentation(
         connection_id=connection_id,
-        presentation_proposal=PresentationProposal(
-            anoncreds=AnonCredsProposal(
+        presentation_request=PresentationRequest(
+            anoncreds=AnonCredsRequest(
                 nonce=str(randint(4, 4)),
                 non_revoked={
                     'to': timestamp,
@@ -50,11 +50,11 @@ def create_request_presentation_payload(cred_def_id, connection_id, attributes, 
                     )
                 },
                 requested_predicates={
-                    'requestedPredicates': RequestedPredicates(
-                        name=predicate[0],
-                        p_type=predicate[1],
-                        p_value=predicate[2]
-                    )
+                    # 'requestedPredicates': RequestedPredicates(
+                    #     name=predicate[0],
+                    #     p_type=predicate[1],
+                    #     p_value=predicate[2]
+                    # )
                 }
             )
         )

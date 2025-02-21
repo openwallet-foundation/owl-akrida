@@ -1,0 +1,81 @@
+<div class="card-body">
+    <h4 class="subheader">Akrida</h4>
+    <form method="post" id="testConfigForm">
+        {{ form.csrf_token }}
+
+        <div class="mb-3">
+            {{ form.swarm_size.label(class="form-label") }}
+            <small class="form-hint mb-1">Up to {{ session['swarm_max'] }} clients</small>
+            {{ form.swarm_size(class="form-range mb-2", min="0", max=session['swarm_max'], step="1") }}
+            {# {{ form.increment.label(class="form-label") }}
+            {{ form.increment(class="form-range mb-2", min="0", max="5", step="1") }} #}
+            {{ form.duration.label(class="form-label") }}
+            <small class="form-hint mb-1">Up to {{ session['minutes_max'] }} minute</small>
+            {{ form.duration(class="form-range mb-2", min="0", max=60 * session['minutes_max'], step="10") }}
+        </div>
+
+        <div class="form-floating mb-3">
+            {{ form.feature(class="form-select", id="floatingSelect") }}
+            {{ form.feature.label(for="floatingSelect") }}
+        </div>
+        <div class="mb-3">
+                {{ form.submit(class="btn w-100", onClick="loadingModal()", id="submit") }}
+            <script>
+            function displayReport() {
+                document.getElementById("report").innerHTML  = `
+                    <iframe src="{{ url_for('get_report') }}" width="100%" height="720" title="report"></iframe>
+                `;
+                $('#testConfigForm :input').prop('disabled', false); 
+                }
+            function loadingModal() {
+                {# document.getElementById("report").innerHTML  = `
+                    <div class="text-secondary">Swarming Agent...</div>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar progress-bar-indeterminate"></div>
+                    </div>
+                    <span id="time"></span>
+                `; #}
+                $('#testConfigForm').submit(function() {
+                    // Get all the forms elements and their values in one step
+                    document.getElementById("report").innerHTML  = `
+                        <div class="text-secondary">Swarming Agent...</div>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar progress-bar-indeterminate"></div>
+                        </div>
+                        <span id="time"></span>
+                    `;
+                    var duration = $("#testConfigForm :input[name='duration']").val();
+                    display = document.querySelector('#time');
+                    startTimer(duration, display);
+                    {# $('#submit').prop('disabled', true); #}
+                    {# $('#testConfigForm :input').prop('disabled', true); #}
+                });
+                {# display = document.querySelector('#time'); #}
+                {# startTimer({{ duration }}, display); #}
+                {# $('#submit').prop('disabled', true); #}
+                {# $('#testConfigForm :input').prop('disabled', true);  #}
+            }
+            function startTimer(duration, display) {
+                var timer = duration, minutes, seconds;
+                setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    timer = duration;
+                }
+                }, 1000);
+            }
+            window.onload = function() {
+                displayReport();
+            };
+            </script>
+        </div>
+
+    </form>
+</div>

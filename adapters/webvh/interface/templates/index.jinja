@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <title>OWL Akrida</title>
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/114502864" type="image/x-icon">
+    <meta name="description" content="Simple Web Interface for conducting Akrida load testing!">
+    <meta name="twitter:image:src" content="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
+    <meta property="og:image" content="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/css/tabler.min.css" rel="stylesheet">
+</head>
+
+{% include('report-modal.jinja') %}
+<body class="d-flex flex-column">
+    {# {% include('components/navbar.jinja')%} #}
+    <div class="page page-center">
+        <div class="container container-lg">
+            <div class="text-center mb-4">
+                <center><img width="25%" alt=""
+                        src="https://openwallet.foundation/wp-content/uploads/sites/11/2023/02/OpenWallet_Logo_Color-with-descriptor.svg">
+                </center>
+            </div>
+            <!-- Page body -->
+            <div class="card">
+                <div class="row g-0">
+                    <div class="col-12 col-md-3 border-end">
+                        {% include('config.jinja') %}
+                    </div>
+                    <div class="col-12 col-md-9 d-flex flex-column">
+                        <div id="report" class="card-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# {% include('components/footer.jinja')%} #}
+    <!-- Libs JS -->
+    <!-- Tabler Core -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/js/tabler.min.js" defer=""></script>
+
+</body>
+
+</html>
