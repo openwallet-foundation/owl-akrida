@@ -14,6 +14,7 @@ from models.protocols import (
     Restriction,
     NonRevocationInterval
 )
+from random import randint
 
 def create_issue_credential_payload(issuer_id, cred_def_id, connection_id, attributes):
     return IssueCredential(
@@ -28,17 +29,18 @@ def create_issue_credential_payload(issuer_id, cred_def_id, connection_id, attri
                 issuer_id=issuer_id,
                 cred_def_id=cred_def_id,
             ))
-    ).model_dumps()
+    ).model_dump()
 
 def create_request_presentation_payload(cred_def_id, connection_id, attributes, predicate, timestamp):
     return RequestPresentation(
         connection_id=connection_id,
         presentation_proposal=PresentationProposal(
             anoncreds=AnonCredsProposal(
-                non_revoked=NonRevocationInterval(
-                    _from=timestamp,
-                    _to=timestamp
-                ),
+                nonce=str(randint(4, 4)),
+                non_revoked={
+                    'to': timestamp,
+                    'from': timestamp
+                },
                 requested_attributes={
                     'requestedAttributes': RequestedAttributes(
                         names=attributes,
@@ -56,4 +58,4 @@ def create_request_presentation_payload(cred_def_id, connection_id, attributes, 
                 }
             )
         )
-    ).model_dumps()
+    ).model_dump()

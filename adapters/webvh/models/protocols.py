@@ -1,6 +1,5 @@
-from pydantic import BaseModel
-from typing import Field, List, Dict, Any
-from random import randint
+from pydantic import BaseModel, Field
+from typing import Union, List, Dict, Any
 
 
 class BaseModel(BaseModel):
@@ -29,8 +28,8 @@ class IssueCredential(BaseModel):
     filter: Filter = Field()
 
 class NonRevocationInterval(BaseModel):
-    _from: int = Field(alias='from')
-    _to: int = Field(alias='to')
+    from_: int = Field(alias='from')
+    to_: int = Field(alias='to')
 
 class Restriction(BaseModel):
     issuer_id: str = Field(None)
@@ -52,9 +51,9 @@ class RequestedPredicates(BaseModel):
 
 class AnonCredsProposal(BaseModel):
     name: str = Field('Proof Request')
-    nonce: str = Field(str(randint(16)))
+    nonce: str = Field()
     version: str = Field('1.0')
-    non_revoked: NonRevocationInterval = Field(None)
+    non_revoked: Union[Dict[str, str], NonRevocationInterval] = Field(None)
     requested_attributes: Dict[str, RequestedAttributes] = Field(None)
     requested_predicates: Dict[str, RequestedPredicates] = Field(None)
 

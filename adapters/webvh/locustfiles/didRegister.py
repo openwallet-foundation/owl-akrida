@@ -12,15 +12,17 @@ class UserBehaviour(SequentialTaskSet):
     def on_start(self):
         holder = HolderController()
         wallet_info = holder.create_subwallet()
+        self.headers = holder.set_headers(wallet_info.get('token'))
 
         issuer = IssuerController()
         invitation = issuer.single_use_invitation(wallet_info.get('wallet_id'))
         
         holder.configure_webvh(invitation.get('invitation_url'))
-        self.headers = holder.set_headers(wallet_info.get('token'))
+        issuer.get_connection(wallet_info.get('wallet_id'))
+        return
     
     def on_stop(self):
-        pass
+        return
     
     @task
     def register_did(self):
@@ -35,13 +37,12 @@ class UserBehaviour(SequentialTaskSet):
                 }
             }
         }
-        print(create_options)
-        # with self.client.post(
-        #     "/did/webvh/create", 
-        #     headers=self.headers, 
-        #     json=create_options
-        #     ) as response:
-        #     pass
+        with self.client.post(
+            "/did/webvh/create", 
+            headers=self.headers, 
+            json=create_options
+            ) as response:
+            print(response.text)
 
 class User(FastHttpUser):
     tasks = [UserBehaviour]

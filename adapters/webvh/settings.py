@@ -18,15 +18,18 @@ class Settings(object):
     HOLDER_ADMIN_API_KEY: str = os.getenv('HOLDER_ADMIN_API_KEY')
     
     # Locust settings
+    LOCUST_SWARM_SIZE: int = int(os.getenv('LOCUST_SWARM_SIZE', 1))
     LOCUST_MIN_WAIT: float = float(os.getenv('LOCUST_MIN_WAIT', 0.1))
     LOCUST_MAX_WAIT: float = float(os.getenv('LOCUST_MAX_WAIT', 1))
     
     # AnonCreds settings
     CREDENTIAL_BATCH_SIZE: int = int(os.getenv('CREDENTIAL_BATCH_SIZE', 5))
+    CREDENTIAL_REVOC_SIZE: int = int(os.getenv('CREDENTIAL_REVOC_SIZE', 50))
+    CRED_DEF_ID: str = os.getenv('CRED_DEF_ID')
     CREDENTIAL: dict = {
         'name': 'TestSchema',
         'version': '1.0',
-        'size': 50,
+        'size': CREDENTIAL_REVOC_SIZE,
         'preview': {
             'givenName': 'Jane',
             'familyName': 'Doe',

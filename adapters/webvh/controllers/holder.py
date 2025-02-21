@@ -40,11 +40,13 @@ class HolderController:
         
     def accept_invitation(self, invitation):
         alias = invitation.get('label')
-        self.connection_id = requests.post(
+        r = requests.post(
             f'{self.admin_endpoint}/out-of-band/receive-invitation?alias={alias}',
             headers=self.headers,
             json=invitation
-        ).json().get('connection_id')
+        )
+        self.connection_id = r.json().get('connection_id')
+        return r.json()
         
     def create_subwallet(self):
         wallet_name = str(uuid.uuid4())
@@ -58,11 +60,12 @@ class HolderController:
         )
         self.wallet_info = r.json()
         self.wallet_id = self.wallet_info.get('wallet_id')
+        self.token = self.wallet_info.get('token')
         self.set_headers(self.wallet_info.get('token'))
         return self.wallet_info
         
     def configure_webvh(self, invitation_url):
-        requests.post(
+        r = requests.post(
             f'{self.admin_endpoint}/did/webvh/configuration',
             headers=self.headers,
             json={
@@ -70,6 +73,7 @@ class HolderController:
                 'witness_invitation': invitation_url
             }
         )
+        return r.json()
         
     def create_webvh(self, wallet_name, invitation_url):
         self.configure_webvh(invitation_url)
