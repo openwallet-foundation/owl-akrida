@@ -3,6 +3,8 @@ import time
 import inspect
 import json
 
+from settings import Settings
+
 import os
 import signal
 
@@ -10,24 +12,10 @@ from gevent import subprocess
 from gevent import select
 from gevent import lock as gevent_lock
 
-
-SHUTDOWN_TIMEOUT_SECONDS = 10
-READ_TIMEOUT_SECONDS = 120  # stdout feedback
-ERRORS_BEFORE_RESTART = 10
-# How long to wait for verified = true state
-VERIFIED_TIMEOUT_SECONDS = int(os.getenv("VERIFIED_TIMEOUT_SECONDS", 20))
-START_PORT = json.loads(os.getenv("START_PORT"))
-END_PORT = json.loads(os.getenv("END_PORT"))
-# Message to send mediator, defaults to "ping"
-MESSAGE_TO_SEND = os.getenv("MESSAGE_TO_SEND", "ping")
-
-ISSUER_TYPE = os.getenv("ISSUER_TYPE", "acapy")
-VERIFIER_TYPE = os.getenv("VERIFIER_TYPE", "acapy")
-
 class PortManager:
     def __init__(self):
         self.lock = gevent_lock.BoundedSemaphore()
-        self.ports = list(range(START_PORT, END_PORT))
+        self.ports = list(range(Settings.START_PORT, Settings.END_PORT))
 
     def getPort(self):
         self.lock.acquire()
@@ -87,14 +75,22 @@ class CustomClient:
         self.errors = 0
         self.port = None
         self.withMediation = None
+        
+        self.issuerType = Settings.ISSUER_TYPE
+        self.verifierType = Settings.VERIFIER_TYPE
+        self.shutdownTimeoutSeconds = Settings.SHUTDOWN_TIMEOUT_SECONDS
+        self.readTimeoutSeconds = Settings.READ_TIMEOUT_SECONDS
+        self.errorsBeforeRestart = Settings.ERRORS_BEFORE_RESTART
+        self.oobInvite = Settings.OOB_INVITE
+        self.messageToSend = Settings.MESSAGE_TO_SEND
 
 
         # Load modules here depending on config
-        if ISSUER_TYPE == 'acapy':
+        if self.issuerType == 'acapy':
             from issuerAgent.acapy import AcapyIssuer
             self.issuer = AcapyIssuer()
             
-        if VERIFIER_TYPE == 'acapy':
+        if self.verifierType == 'acapy':
             from verifierAgent.acapy import AcapyVerifier
             self.verifier = AcapyVerifier()
             
@@ -154,13 +150,13 @@ class CustomClient:
             self.agent.stdin.write("\n")
             self.agent.stdin.flush()
 
-            self.agent.communicate(timeout=SHUTDOWN_TIMEOUT_SECONDS)
-        except Exception as e:
+            self.agent.communicate(timeout=self.shutdownTimeoutSeconds)
+        except Exception:
             pass
         finally:
             try:
                 os.kill(self.agent.pid, signal.SIGTERM)
-            except Exception as e:
+            except Exception:
                 pass
             self.agent = None
 
@@ -194,8 +190,6 @@ class CustomClient:
         else:
             return False
 
-        return False
-
     def run_command(self, command):
         try:
             self.agent.stdin.write(json.dumps(command))
@@ -215,7 +209,7 @@ class CustomClient:
                 q = select.poll()
                 q.register(self.agent.stdout, select.POLLIN)
 
-                if q.poll(READ_TIMEOUT_SECONDS * 1000):
+                if q.poll(self.readTimeoutSeconds * 1000):
                     raw_line_stdout = self.agent.stdout.readline()
                     try:
                         line = json.loads(raw_line_stdout)
@@ -235,15 +229,14 @@ class CustomClient:
             return line
         except Exception as e:
             self.errors += 1
-            if self.errors > ERRORS_BEFORE_RESTART:
+            if self.errors > self.errorsBeforeRestart:
                 self.shutdown()  ## if we are in bad state we may need to restart...
             raise e
 
     @stopwatch
     def ping_mediator(self):
         self.run_command({"cmd": "ping_mediator"})
-
-        line = self.readjsonline()
+        self.readjsonline()
 
     @stopwatch
     def issuer_getinvite(self):
@@ -256,8 +249,7 @@ class CustomClient:
     @stopwatch
     def delete_oob(self, id):
         self.run_command({"cmd": "deleteOobRecordById", "id": id})
-
-        line = self.readjsonline()
+        self.readjsonline()
 
     @stopwatch
     def accept_invite(self, invite, useConnectionDid=False):
@@ -278,8 +270,7 @@ class CustomClient:
         self.run_command({"cmd": "receiveCredential"})
 
         r = self.issuer.issue_credential(connection_id)
-
-        line = self.readjsonline()
+        self.readjsonline()
 
         return r
 
@@ -292,8 +283,7 @@ class CustomClient:
         self.run_command({"cmd": "presentationExchange"})
 
         pres_ex_id = self.verifier.request_verification(connection_id)
-
-        line = self.readjsonline()
+        self.readjsonline()
         
         self.verifier.verify_verification(pres_ex_id)
 
@@ -312,7 +302,7 @@ class CustomClient:
     def msg_client(self, connection_id):
         self.run_command({"cmd": "receiveMessage"})
 
-        self.issuer.send_message(connection_id, MESSAGE_TO_SEND)
+        self.issuer.send_message(connection_id, self.messageToSend)
 
         line = self.readjsonline()
 

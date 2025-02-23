@@ -3,12 +3,20 @@ import json
 import os
 import requests
 import time
+from .models import RequestPresentationV1, ProofRequest
+from settings import Settings
 
 from json.decoder import JSONDecodeError
 
-VERIFIED_TIMEOUT_SECONDS = int(os.getenv("VERIFIED_TIMEOUT_SECONDS", 20))
-
 class AcapyVerifier(BaseVerifier):
+        def __init__(self):
+                self.agent_url = os.getenv("VERIFIER_URL")
+                self.headers = json.loads(os.getenv("VERIFIER_HEADERS"))
+                self.headers['Content-Type'] = "application/json"
+        
+                self.cred_attributes = json.loads(os.getenv("CRED_ATTR"))
+                
+                self.verifiedTimeoutSeconds = Settings.VERIFIED_TIMEOUT_SECONDS
 
         def get_invite(self):
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))
@@ -43,12 +51,10 @@ class AcapyVerifier(BaseVerifier):
 
         def is_up(self):
                 try:
-                        headers = json.loads(os.getenv("VERIFIER_HEADERS"))
-                        headers["Content-Type"] = "application/json"
                         r = requests.get(
-                                os.getenv("VERIFIER_URL") + "/status",
+                                f"{self.agent_url}/status",
                                 json={"metadata": {}, "my_label": "Test"},
-                                headers=headers,
+                                headers=self.headers,
                         )
                         if r.status_code != 200:
                                 raise Exception(r.content)
@@ -61,79 +67,63 @@ class AcapyVerifier(BaseVerifier):
 
         def create_connectionless_request(self):
                 # Calling verification agent
-                headers = json.loads(os.getenv("VERIFIER_HEADERS"))
-                headers["Content-Type"] = "application/json"
 
                 # API call to /present-proof/create-request
                 r = requests.post(
-                        os.getenv("VERIFIER_URL") + "/present-proof/create-request",
-                        json={
-                                "auto_remove": False,
-                                "auto_verify": True,
-                                "comment": "Performance Verification",
-                                "proof_request": {
-                                "name": "PerfScore",
-                                "requested_attributes": {
-                                        item["name"]: {"name": item["name"]}
-                                        for item in json.loads(os.getenv("CRED_ATTR"))
-                                },
-                                "requested_predicates": {},
-                                "version": "1.0",
-                                },
-                                "trace": True,
-                        },
-                        headers=headers,
+                        f"{self.agent_url}/present-proof/create-request",
+                        json=RequestPresentationV1(
+                                comment='Performance Verification',
+                                proof_request=ProofRequest().model_dump(
+                                        name='PerfScore',
+                                        requested_attributes={
+                                                item["name"]: {"name": item["name"]}
+                                                for item in self.cred_attributes
+                                        },
+                                        requested_predicates={},
+                                        version='1.0'
+                                )
+                        ).model_dump(),
+                        headers=self.headers,
                 )
 
                 try:
                         if r.status_code != 200:
                                 raise Exception("Request was not successful: ", r.content)
-                except JSONDecodeError as e:
+                except JSONDecodeError:
                         raise Exception(
-                                "Encountered JSONDecodeError while parsing the request: ", r
+                                "Encountered JSONDecodeError while parsing the request: ", r.text
                         )
                 
-                r = r.json()
-
-                return r
+                return r.json()
         
         def request_verification(self, connection_id):
                 # From verification side
-                headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
-                headers["Content-Type"] = "application/json"
-
-                verifier_did = os.getenv("CRED_DEF").split(":")[0]
-                schema_parts = os.getenv("SCHEMA").split(":")
-
                 # Might need to change nonce
                 # TO DO: Generalize schema parts
                 r = requests.post(
-                        os.getenv("VERIFIER_URL") + "/present-proof/send-request",
-                        json={
-                                "auto_remove": False,
-                                "auto_verify": True,
-                                "comment": "Performance Verification",
-                                "connection_id": connection_id,
-                                "proof_request": {
-                                "name": "PerfScore",
-                                "requested_attributes": {
-                                        item["name"]: {"name": item["name"]}
-                                        for item in json.loads(os.getenv("CRED_ATTR"))
-                                },
-                                "requested_predicates": {},
-                                "version": "1.0",
-                                },
-                                "trace": True,
-                        },
-                        headers=headers,
+                        f"{self.agent_url}/present-proof/send-request",
+                        json=RequestPresentationV1(
+                                comment='Performance Verification',
+                                connection_id=connection_id,
+                                proof_request=ProofRequest().model_dump(
+                                        name='PerfScore',
+                                        requested_attributes={
+                                                item["name"]: {"name": item["name"]}
+                                                for item in self.cred_attributes
+                                        },
+                                        requested_predicates={},
+                                        version='1.0'
+                                )
+                        ).model_dump(),
+                        headers=self.headers,
                 )
 
                 try:
                         if r.status_code != 200:
                                 raise Exception("Request was not successful: ", r.content)
-                except JSONDecodeError as e:
+                except JSONDecodeError:
                         raise Exception(
-                                "Encountered JSONDecodeError while parsing the request: ", r
+                                "Encountered JSONDecodeError while parsing the request: ", r.text
                         )
                 
                 r = r.json()
@@ -141,16 +131,13 @@ class AcapyVerifier(BaseVerifier):
                 return r['presentation_exchange_id']
 
         def verify_verification(self, presentation_exchange_id):
-                headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
-                headers["Content-Type"] = "application/json"
-                
                 # Want to do a for loop
                 iteration = 0
                 try:
-                        while iteration < VERIFIED_TIMEOUT_SECONDS:
+                        while iteration < self.verifiedTimeoutSeconds:
                                 g = requests.get(
-                                        os.getenv("VERIFIER_URL") + f"/present-proof/records/{presentation_exchange_id}",
-                                        headers=headers,
+                                        f"{self.agent_url}/present-proof/records/{presentation_exchange_id}",
+                                        headers=self.headers,
                                 )
                                 if (
                                         g.json()["state"] != "request_sent"
@@ -174,12 +161,9 @@ class AcapyVerifier(BaseVerifier):
                 return True
 
         def send_message(self, connection_id, msg):
-                headers = json.loads(os.getenv("VERIFIER_HEADERS"))
-                headers["Content-Type"] = "application/json"
-
                 r = requests.post(
-                        os.getenv("ISSUER_URL") + "/connections/" + connection_id + "/send-message",
+                        f"{self.agent_url}/connections/{connection_id}/send-message",
                         json={"content": msg},
-                        headers=headers,
+                        headers=self.headers,
                 )
-                r = r.json()
+                r.json()
