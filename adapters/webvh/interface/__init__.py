@@ -17,6 +17,7 @@ import hashlib
 from locustfiles import LOCUST_FILES
 from settings import Settings
 import gevent
+import json
 
 setup_logging("INFO")
 
@@ -35,20 +36,20 @@ def create_app():
 
     @app.before_request
     def before_request_callback():
-        session["swarm_max"] = 10
+        session["swarm_max"] = Settings.LOCUST_SWARM_MAX_SIZE
         session["spawn_rate"] = 1
         session["minutes_max"] = 5
         if "client_id" not in session:
             session["client_id"] = hashlib.sha1(str(uuid.uuid4()).encode()).hexdigest()
-            asyncio.run(
-                AskarStorage().store(
-                    "report",
-                    session["client_id"],
-                    {
-                        "message": "Run your first test and your report will appear here!"
-                    },
-                )
+        asyncio.run(
+            AskarStorage().store(
+                "report",
+                session["client_id"],
+                {
+                    "message": "Run your first test and your report will appear here!"
+                },
             )
+        )
 
     @app.route("/", methods=["GET", "POST"])
     def index():

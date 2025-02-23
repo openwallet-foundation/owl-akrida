@@ -22,7 +22,7 @@ class Settings(object):
     HOLDER_ADMIN_API_KEY: str = os.getenv("HOLDER_ADMIN_API_KEY")
 
     # Locust settings
-    LOCUST_SWARM_MAX_SIZE: int = int(os.getenv("LOCUST_SWARM_MAX_SIZE", 10))
+    LOCUST_SWARM_MAX_SIZE: int = int(os.getenv("LOCUST_SWARM_MAX_SIZE", 50))
     LOCUST_SWARM_SIZE: int = int(os.getenv("LOCUST_SWARM_SIZE", 1))
     LOCUST_MIN_WAIT: float = float(os.getenv("LOCUST_MIN_WAIT", 0.1))
     LOCUST_MAX_WAIT: float = float(os.getenv("LOCUST_MAX_WAIT", 1))
@@ -32,14 +32,14 @@ class Settings(object):
 
     # AnonCreds settings
     CREDENTIAL_BATCH_SIZE: int = int(os.getenv("CREDENTIAL_BATCH_SIZE", 5))
-    CREDENTIAL_REVOC_SIZE: int = int(os.getenv("CREDENTIAL_REVOC_SIZE", 50))
+    CREDENTIAL_REVOC_SIZE: int = int(os.getenv("CREDENTIAL_REVOC_SIZE", 1000))
     ISSUANCE_DELAY_LIMIT: int = int(os.getenv("ISSUANCE_DELAY_LIMIT", 10))
     VERIFICATION_DELAY_LIMIT: int = int(os.getenv("VERIFICATION_DELAY_LIMIT", 10))
 
     # Credential sample
     CREDENTIAL: dict = {
         "name": "TestSchema",
-        "version": "1.0",
+        "version": "1.3",
         "size": CREDENTIAL_REVOC_SIZE,
         "preview": {
             "givenName": "Jane",

@@ -159,7 +159,7 @@ class IssuerController:
         schema_version=Settings.CREDENTIAL.get("version"),
     ):
         r = requests.get(
-            f"{self.admin_api}/anoncreds/credential-definitions??schema_name={schema_name}&schema_version={schema_version}",
+            f"{self.admin_api}/anoncreds/credential-definitions?schema_name={schema_name}&schema_version={schema_version}",
             # headers=self.headers,
         )
         return r.json()

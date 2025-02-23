@@ -6,6 +6,6 @@ USER root
 RUN pip install git+https://github.com/OpSecId/acapy-plugins@webvh-anoncreds#subdirectory=webvh
 
 USER $user
-COPY ./configs.yml configs.yml
+COPY ./config.yml config.yml
 
-CMD ["start", "--arg-file", "configs.yml"]
+CMD ["start", "--arg-file", "config.yml"]
