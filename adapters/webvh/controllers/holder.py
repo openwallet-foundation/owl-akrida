@@ -1,6 +1,5 @@
 import uuid
 import time
-import secrets
 import hashlib
 import requests
 from settings import Settings
