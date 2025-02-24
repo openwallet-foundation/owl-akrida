@@ -1,88 +1,42 @@
 from .base import BaseIssuer
-import json
-import os
 import requests
 import time
-from .models import IssueCredentialV1, CredentialProposalV1, AnonCredsRevocation
+import json
+from models import IssueCredentialV1, CredentialProposalV1, AnonCredsRevocation
+from settings import Settings
 
 class AcapyIssuer(BaseIssuer):
         def __init__(self):
-                self.agent_url = os.getenv("ISSUER_URL")
-                self.headers = json.loads(os.getenv("ISSUER_HEADERS"))
-                self.headers['Content-Type'] = "application/json"
-                self.cred_def_id = os.getenv("CRED_DEF")
-                self.schema_id = os.getenv("SCHEMA")
-                self.cred_attributes = json.loads(os.getenv("CRED_ATTR"))
+                self.label = "Test Issuer"
+                self.agent_url = Settings.ISSUER_URL
+                self.headers = Settings.ISSUER_HEADERS | {
+                        'Content-Type': 'application/json'
+                }
+                self.schema_id = Settings.SCHEMA_ID
+                self.cred_def_id = Settings.CRED_DEF_ID
+                self.cred_attributes = Settings.CRED_ATTR
         
-<<<<<<< HEAD
         def get_invite(self):
-                headers = json.loads(os.getenv("ISSUER_HEADERS"))
-                headers["Content-Type"] = "application/json"
-
                 # Out of Band Connection 
                 r = requests.post(
-                        os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
+                        f"{self.agent_url}/out-of-band/create-invitation?auto_accept=true", 
                         json={
-                        "metadata": {}, 
                         "handshake_protocols": ["did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"]
                         },
-                        headers=headers
+                        headers=self.headers
                 )
 
                 r = r.json()
 
                 invitation_msg_id = r['invi_msg_id']
                 g = requests.get(
-                        os.getenv("ISSUER_URL") + "/connections",
+                        f"{self.agent_url}/connections",
                         params={"invitation_msg_id": invitation_msg_id},
-                        headers=headers,
+                        headers=self.headers,
                 )
                 # Returns only one
                 connection_id = g.json()['results'][0]['connection_id']
                 r['connection_id'] = connection_id 
-=======
-        def get_invite(self, out_of_band=False):
-                if out_of_band:
-                        # Out of Band Connection 
-                        # (ACA-Py v10.4 - only works with connections protocol, not DIDExchange) 
-                        r = requests.post(
-                                f"{self.agent_url}/out-of-band/create-invitation?auto_accept=true", 
-                                json={
-                                "metadata": {}, 
-                                "handshake_protocols": ["https://didcomm.org/connections/1.0"]
-                                },
-                                headers=self.headers
-                        )
-                else:
-                        # Regular Connection
-                        r = requests.post(
-                                f"{self.agent_url}/connections/create-invitation?auto_accept=true",
-                                json={"metadata": {}, "my_label": "Test"},
-                                headers=self.headers,
-                        )
-
-                        # Ensure the request worked
-                        try:
-                                r.json()["invitation_url"]
-                        except Exception:
-                                raise Exception("Failed to get invitation url. Request: ", r.text)
-                        if r.status_code != 200:
-                                raise Exception(r.content)
-
-                r = r.json()
-
-                # If OOB, need to grab connection_id
-                if out_of_band:
-                        invitation_msg_id = r['invi_msg_id']
-                        g = requests.get(
-                                f"{self.agent_url}/connections",
-                                params={"invitation_msg_id": invitation_msg_id},
-                                headers=self.headers,
-                        )
-                        # Returns only one
-                        connection_id = g.json()['results'][0]['connection_id']
-                        r['connection_id'] = connection_id 
->>>>>>> 50f1134 (add parametrized settings for load agent, models for protocol exchanges and locust files subdirectory)
                 
                 return {
                         'invitation_url': r['invitation_url'], 
@@ -93,7 +47,6 @@ class AcapyIssuer(BaseIssuer):
                 try:
                         r = requests.get(
                                 f"{self.agent_url}/status",
-                                json={"metadata": {}, "my_label": "Test"},
                                 headers=self.headers,
                         )
                         if r.status_code != 200:

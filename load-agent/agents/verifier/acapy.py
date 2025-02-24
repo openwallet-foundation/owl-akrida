@@ -3,19 +3,20 @@ import json
 import os
 import requests
 import time
-from .models import RequestPresentationV1, ProofRequest
+from models import RequestPresentationV1, ProofRequest
 from settings import Settings
 
 from json.decoder import JSONDecodeError
 
 class AcapyVerifier(BaseVerifier):
         def __init__(self):
-                self.agent_url = os.getenv("VERIFIER_URL")
-                self.headers = json.loads(os.getenv("VERIFIER_HEADERS"))
-                self.headers['Content-Type'] = "application/json"
+                self.label = "Test Verifier"
+                self.agent_url = Settings.VERIFIER_URL
+                self.headers = Settings.VERIFIER_HEADERS | {
+                        'Content-Type': 'application/json'
+                }
         
-                self.cred_attributes = json.loads(os.getenv("CRED_ATTR"))
-                
+                self.cred_attributes = Settings.CRED_ATTR
                 self.verifiedTimeoutSeconds = Settings.VERIFIED_TIMEOUT_SECONDS
 
         def get_invite(self):
@@ -24,21 +25,20 @@ class AcapyVerifier(BaseVerifier):
 
                 # Out of Band Connection 
                 r = requests.post(
-                        os.getenv("VERIFIER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
+                        f"{self.agent_url}/out-of-band/create-invitation?auto_accept=true", 
                         json={
-                        "metadata": {}, 
                         "handshake_protocols": ["did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"]
                         },
-                        headers=headers
+                        headers=self.headers
                 )
 
                 r = r.json()
 
                 invitation_msg_id = r['invi_msg_id']
                 g = requests.get(
-                        os.getenv("VERIFIER_URL") + "/connections",
+                        f"{self.agent_url}/connections",
                         params={"invitation_msg_id": invitation_msg_id},
-                        headers=headers,
+                        headers=self.headers,
                 )
                 # Returns only one
                 connection_id = g.json()['results'][0]['connection_id']
@@ -53,7 +53,6 @@ class AcapyVerifier(BaseVerifier):
                 try:
                         r = requests.get(
                                 f"{self.agent_url}/status",
-                                json={"metadata": {}, "my_label": "Test"},
                                 headers=self.headers,
                         )
                         if r.status_code != 200:

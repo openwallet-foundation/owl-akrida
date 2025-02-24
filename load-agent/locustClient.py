@@ -8,8 +8,7 @@ from settings import Settings
 import os
 import signal
 
-from gevent import subprocess
-from gevent import select
+from gevent import subprocess, select
 from gevent import lock as gevent_lock
 
 class PortManager:
@@ -87,11 +86,11 @@ class CustomClient:
 
         # Load modules here depending on config
         if self.issuerType == 'acapy':
-            from issuerAgent.acapy import AcapyIssuer
+            from agents.issuer.acapy import AcapyIssuer
             self.issuer = AcapyIssuer()
             
         if self.verifierType == 'acapy':
-            from verifierAgent.acapy import AcapyVerifier
+            from agents.verifier.acapy import AcapyVerifier
             self.verifier = AcapyVerifier()
             
     _locust_environment = None

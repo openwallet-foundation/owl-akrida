@@ -26,6 +26,22 @@ class IssueCredentialV1(BaseModel):
     trace: bool = Field(True)
 
 
+class ProofRequest(BaseModel):
+    name: str = Field()
+    requested_attributes: dict = Field()
+    requested_predicates: dict = Field()
+    version: str = Field()
+
+
+class RequestPresentationV1(BaseModel):
+    auto_remove: bool = Field(False)
+    auto_verify: bool = Field(True)
+    connection_id: str = Field(None)
+    comment: str = Field()
+    proof_request: ProofRequest = Field()
+    trace: bool = Field(True)
+
+
 class AnonCredsRevocation(BaseModel):
     comment: str = Field()
     connection_id: str = Field()
