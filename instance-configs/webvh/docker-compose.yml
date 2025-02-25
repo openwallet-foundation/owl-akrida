@@ -1,14 +1,4 @@
 services:
-  akrida-web-ui:
-    build: .
-    environment:
-      ISSUER_ADMIN_API: http://issuer
-      HOLDER_ADMIN_API: http://holder
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.akrida-web-ui.rule=Host(`akrida.docker.localhost`)
-      - traefik.http.routers.akrida-web-ui.entrypoints=web
-      - traefik.http.services.akrida-web-ui.loadbalancer.server.port=5000
 
   issuer:
     build:
@@ -27,6 +17,8 @@ services:
       context: ../caddy
     environment:
       AGENT_HOST: issuer
+      PORT_HTTP: 8021
+      PORT_WS: 8022
     labels:
       - traefik.enable=true
       - traefik.http.routers.issuer-caddy.rule=Host(`issuer.docker.localhost`)
@@ -49,6 +41,8 @@ services:
       context: ../caddy
     environment:
       AGENT_HOST: holder
+      PORT_HTTP: 8021
+      PORT_WS: 8022
     labels:
       - traefik.enable=true
       - traefik.http.routers.holder-caddy.rule=Host(`holder.docker.localhost`)

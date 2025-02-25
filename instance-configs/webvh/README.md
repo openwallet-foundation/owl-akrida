@@ -19,6 +19,13 @@ To deploy the agents, you will need to provide a public endpoint for the admin a
 Additionally, you need to provide a seed to the single tenant agent. The ed25519 keypair created by this seed will be used to witness webvh did logs.
 * The seed value `00000000000000000000000000000000` can be used for the provided webvh instance. *
 
+You can view the agent's OpenAPI web interface by visiting the following pages in your local browser:
+http://api.issuer.docker.localhost
+http://api.holder.docker.localhost
+
+
+`TEST_WITNESS_SEED=00000000000000000000000000000000 docker compose up --build`
+
 ### Running a load test
 
 TBD, we are currently updating the AIP to version 2 in order to support additional AnonCreds registries.
