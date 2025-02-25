@@ -3,7 +3,8 @@
 ## What's included?
 For load testing WebVH features, there are 2 agents configurations available:
 - An ACApy Multitenant agent, meant to act as a wallet provider.
-- An ACApy Single tenant agent, meant to act as a Witness, Issuer & Verifier. A Caddy proxy is recommended for DIDCommm communication ports.
+- An ACApy Single tenant agent, meant to act as a Witness, Issuer & Verifier. 
+    - A Caddy proxy is recommended for DIDCommm communication ports.
 
 Additionally, the following is provided:
 - An integration instance of a WebVH server: https://id.test-suite.app
