@@ -1,0 +1,7 @@
+:2019 {
+        @ws {
+                header Upgrade websocket
+        }
+        reverse_proxy {$AGENT_HOST}:{$PORT_HTTP}
+        reverse_proxy @ws {$AGENT_HOST}:{$PORT_WS}
+}
