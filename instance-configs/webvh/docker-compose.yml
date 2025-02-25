@@ -1,0 +1,68 @@
+services:
+  akrida-web-ui:
+    build: .
+    environment:
+      ISSUER_ADMIN_API: http://issuer
+      HOLDER_ADMIN_API: http://holder
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.akrida-web-ui.rule=Host(`akrida.docker.localhost`)
+      - traefik.http.routers.akrida-web-ui.entrypoints=web
+      - traefik.http.services.akrida-web-ui.loadbalancer.server.port=5000
+
+  issuer:
+    build:
+      context: ./acapy-agent-single
+    environment:
+      ACAPY_ENDPOINT: issuer.docker.localhost
+      ACAPY_WALLET_SEED: ${TEST_WITNESS_SEED}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.issuer.rule=Host(`api.issuer.docker.localhost`)
+      - traefik.http.routers.issuer.entrypoints=web
+      - traefik.http.services.issuer.loadbalancer.server.port=8020
+
+  issuer-caddy:
+    build:
+      context: ../caddy
+    environment:
+      AGENT_HOST: issuer
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.issuer-caddy.rule=Host(`issuer.docker.localhost`)
+      - traefik.http.routers.issuer-caddy.entrypoints=web
+      - traefik.http.services.issuer-caddy.loadbalancer.server.port=2019
+
+  holder:
+    build:
+      context: ./acapy-agent-multi
+    environment:
+      ACAPY_ENDPOINT: holder.docker.localhost
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.holder.rule=Host(`api.holder.docker.localhost`)
+      - traefik.http.routers.holder.entrypoints=web
+      - traefik.http.services.holder.loadbalancer.server.port=8020
+
+  holder-caddy:
+    build:
+      context: ../caddy
+    environment:
+      AGENT_HOST: holder
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.holder-caddy.rule=Host(`holder.docker.localhost`)
+      - traefik.http.routers.holder-caddy.entrypoints=web
+      - traefik.http.services.holder-caddy.loadbalancer.server.port=2019
+
+  traefik:
+    image: traefik:v3.1
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entryPoints.web.address=:80
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

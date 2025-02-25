@@ -11,4 +11,14 @@ Additionally, the following is provided:
 - An integration instance of a tails server: https://tails.anoncreds.vc
 
 ## How to get started?
+
+### Configuring the agents
+
+To deploy the agents, you will need to provide a public endpoint for the admin api interface and the didcomm inbound communication ports.
+
+Additionally, you need to provide a seed to the single tenant agent. The ed25519 keypair created by this seed will be used to witness webvh did logs.
+* The seed value `00000000000000000000000000000000` can be used for the provided webvh instance. *
+
+### Running a load test
+
 TBD, we are currently updating the AIP to version 2 in order to support additional AnonCreds registries.
