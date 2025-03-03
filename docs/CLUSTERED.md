@@ -744,7 +744,7 @@ Now, we'll want to use this within the Locust `master`.
 
 ##### Point Locust Master to the Locust Worker Load Balancer
 
-SSH into your Locust `worker` VM and open up your `.env` file of the `aries-akrida` repo. 
+SSH into your Locust `worker` VM and open up your `.env` file of the `owl-akrida` repo. 
 
 Within this `.env` file, you'll want to change the `AGENT_IP` variable to point to this DNS name you just copied, such that
 ```
