@@ -2,7 +2,7 @@
 
 Locust is an open source load testing tool. Locust allows defining user behaviour with Python code, and swarming your system with millions of simultaneous users.
 
-For more information about why [Locust](https://locust.io/) was chosen, or the design document, please see [here](https://github.com/hyperledger/aries-akrida/blob/main/docs/DESIGN.md). 
+For more information about why [Locust](https://locust.io/) was chosen, or the design document, please see [here](./DESIGN.md). 
 
 Before proceeding, please make sure you have a billing account set up on your cloud provider and that you will have permissions to create and deploy VM instances and other architectures.
 
@@ -214,18 +214,18 @@ Bam! You should be good to clone down all of the content we will need now! Let's
 
 ## Postgres DB (ACA-Py Agent Configuration)
 
-First, before any worthwhile adventure, we must grab some resources. We can do this by cloning down the [aries-akrida](https://github.com/hyperledger/aries-akrida) repository. Do so, by typing in
+First, before any worthwhile adventure, we must grab some resources. We can do this by cloning down the [owl-akrida](https://github.com/openwallet-foundation/owl-akrida) repository. Do so, by typing in
 ```
-git clone git@github.com:hyperledger/aries-akrida.git
+git clone git@github.com:openwallet-foundation/owl-akrida.git
 ```
 within the SSH session of your database VM.
 
-Navigate into this repo by entering `cd aries-akrida`. From there, we will want to take all of the relevant files we will need (without really needing the rest). We can do that by
+Navigate into this repo by entering `cd owl-akrida`. From there, we will want to take all of the relevant files we will need (without really needing the rest). We can do that by
 ```
 cd instance-configs/database
 mv * ../../../
 cd ../../../
-rm -rf aries-akrida/
+rm -rf owl-akrida/
 ```
 so that we are only left with the relevant files in the database directory for this VM. From there, we will need to populate the `.env` file. Please make sure you fill out the following below information (i.e. don't blindly copy and paste). However, once the below information is filled out, we can put it into the environment by
 
@@ -290,17 +290,17 @@ Otherwise, we're ready to get up our ACA-Py agent to communicate with this datab
 
 For this portion, we will once again need that same repo from earlier. 
 
-We can do this by cloning down the [aries-akrida](https://github.com/hyperledger/aries-akrida) repository. Do so, by typing in
+We can do this by cloning down the [owl-akrida](https://github.com/openwallet-foundation/owl-akrida) repository. Do so, by typing in
 ```
-git clone git@github.com:hyperledger/aries-akrida.git
+git clone git@github.com:openwallet-foundation/owl-akrida.git
 ```
 
-Go ahead and navigate into this repo by entering in `cd aries-akrida`. From there, we will want to take all of the relevant files we will need (without really needing the rest). We can do that by
+Go ahead and navigate into this repo by entering in `cd owl-akrida`. From there, we will want to take all of the relevant files we will need (without really needing the rest). We can do that by
 ```
 cd instance-configs/acapy-agent
 mv * ../../../
 cd ../../../
-rm -rf aries-akrida/
+rm -rf owl-akrida/
 ```
 so that we are only left with the relevant files in the acapy-agent directory for this VM. From there, we will need to populate the `.env` file. However, we will need some information from AWS in order to fill it out. 
 
@@ -464,13 +464,13 @@ After executing these commands, you'll need to SSH into this locust VM again.
 
 For this prepatory portion of the adventure, we will once again need that same repo from earlier. 
 
-We can do this by cloning down the [aries-akrida](https://github.com/hyperledger/aries-akrida) repository. Do so, by typing in
+We can do this by cloning down the [owl-akrida](https://github.com/openwallet-foundation/owl-akrida) repository. Do so, by typing in
 ```
-git clone git@github.com:hyperledger/aries-akrida.git
+git clone git@github.com:openwallet-foundation/owl-akrida.git
 ```
 
-Go ahead and navigate into this repo by entering in `cd aries-akrida`. 
-Before we go ahead and populate our `.env` file, we'll need to locally clone down a specific version for AFJ for our clients. (For motiviation on why we're doing this, see our design document.  We use AFJ to simulate our clients here.) If you haven't already, `cd aries-akrida`. 
+Go ahead and navigate into this repo by entering in `cd owl-akrida`. 
+Before we go ahead and populate our `.env` file, we'll need to locally clone down a specific version for AFJ for our clients. (For motiviation on why we're doing this, see our design document.  We use AFJ to simulate our clients here.) If you haven't already, `cd owl-akrida`. 
 
 ```
 git clone git@github.com:openwallet-foundation/agent-framework-javascript.git
@@ -605,17 +605,17 @@ sudo systemctl start docker
 
 This last part is optional, only if you want to up your own mediator. We will proceed with either the assumption that you (a) have permissions to set DNS entries (for Amazon, via Route 53) or (b) will be able to ask for this. 
 
-To begin, clone down the [aries-akrida](https://github.com/hyperledger/aries-akrida) repository. Do 
+To begin, clone down the [owl-akrida](https://github.com/openwallet-foundation/owl-akrida) repository. Do 
 ```
-git clone git@github.com:hyperledger/aries-akrida.git
+git clone git@github.com:openwallet-foundation/owl-akrida.git
 ```
 
-Go ahead and navigate into this repo by doing `cd aries-akrida`. From there, we will want to take all of the relevant files we will need (without really needing the rest). We can do that by
+Go ahead and navigate into this repo by doing `cd owl-akrida`. From there, we will want to take all of the relevant files we will need (without really needing the rest). We can do that by
 ```
 cd instance-configs/mediator
 mv * ../../../
 cd ../../../
-rm -rf aries-akrida/
+rm -rf owl-akrida/
 ```
 so that we are only left with the relevant files in the mediator directory for this VM. In order to proceed with setting everything up, we will need to have a permanent, public IP address for this mediator VM. 
 
