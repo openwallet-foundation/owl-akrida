@@ -1,21 +1,15 @@
 from locust import events
-from json.decoder import JSONDecodeError
 import time
 import inspect
 import json
 
-from typing import Any, Optional
-
-import fcntl
 import os
-import requests
 import signal
 
 from gevent import subprocess
 from gevent import select
 from gevent import lock as gevent_lock
 
-from uuid import uuid4
 
 SHUTDOWN_TIMEOUT_SECONDS = 10
 READ_TIMEOUT_SECONDS = 120  # stdout feedback
