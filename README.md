@@ -1,13 +1,13 @@
 <p align="center">
   <br />
   <img
-    alt="Hyperledger Aries logo"
-    src="https://raw.githubusercontent.com/hyperledger/aries-framework-javascript/aa31131825e3331dc93694bc58414d955dcb1129/images/aries-logo.png"
+    alt="OWL Akrida logo"
+    src="./Logo.png"
     height="250px"
   />
 </p>
 
-<h1 align="center"><b>Aries Akrida</b></h1>
+<h1 align="center"><b>OWL Akrida</b></h1>
 
 <p align="center">
   <a href="#features">Features</a> &nbsp;|&nbsp;
@@ -17,9 +17,9 @@
   <a href="#license">License</a> 
 </p>
 
-The Aries Akrida is designed to **load test** various [Hyperledger Aries](https://www.hyperledger.org/projects/aries) **deployments**.
+The OWL Akrida is designed to **load test** deployments based upon DIDComm, such as [Credo](https://github.com/openwallet-foundation/credo-ts) and [ACA-Py](https://github.com/openwallet-foundation/acapy.git).
 
-The project uses the [Locust](https://locust.io/) tool in combination with [Aries Framwork Javascript](https://github.com/hyperledger/aries-framework-javascript) to test [DIDComm](https://decentralized-id.com/projects/decentralized-identity-foundation/did-communications/) based protocols. 
+The project uses the [Locust](https://locust.io/) tool in combination with [Credo](https://github.com/openwallet-foundation/credo-ts) to test [DIDComm](https://didcomm.org) based protocols. 
 
 From Ancient Greek ἀκρίς, or akrída, means locust or grasshopper.
 
@@ -38,7 +38,7 @@ Example of a typical environment with a mediator:
 
 ![Typical environment with a mediator](./docs/images/holdermediatorissuer.png)
 
-Aries Akrida is designed to take place of the holder agents. This allows Aries Akrida to provide a load on the Mediator, Issuer, and/or Verifier agents.
+OWL Akrida is designed to take place of the holder agents. This allows OWL Akrida to provide a load on the Mediator, Issuer, and/or Verifier agents.
 
 Example of Locust with a mediator:
 

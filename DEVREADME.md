@@ -4,7 +4,7 @@ This file is intended for developers working on the internals of the framework. 
 
 ## Making Changes
 
-The general structure of the Aries Akrida project is broken into three parts. 
+The general structure of the OWL Akrida project is broken into three parts. 
 
 ### AFJ Agent
 

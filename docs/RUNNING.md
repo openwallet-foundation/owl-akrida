@@ -1,4 +1,4 @@
-# Running Aries Akrida
+# Running OWL Akrida
 
 Before starting any load testing you **SHOULD** gain written permission that includes the time, method and various systems that you wish to load test. You **MUST NOT** load test any system that you do **NOT** have permission to test.
 
@@ -25,8 +25,8 @@ ToDo:
 ## Running load tests
 ```
 # Clone this repo
-git clone URL aries-akirda
-cd aries-akirda
+git clone URL owl-akirda
+cd owl-akirda
 
 # Copy the sample.env to .env and edit it according to your needs -- at least the MEDIATION URL
 cp sample.env .env
@@ -78,7 +78,7 @@ docker-compose up
 
 ### User Startup
 
-When starting up the Users for tests, the Aries Framework Javascript(AFJ) agents used for the Locust client may take more CPU than when running the test. Since the startup cost can be more expensive, you may either need a larger machine to onboard Users faster, or slow down the onboarding rate.
+When starting up the Users for tests, the Credo agents used for the Locust client may take more CPU than when running the test. Since the startup cost can be more expensive, you may either need a larger machine to onboard Users faster, or slow down the onboarding rate.
 
 Typically symptoms of starting agents to quickly is getting an timeout error on startup.
 

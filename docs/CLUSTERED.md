@@ -2,7 +2,7 @@
 
 Locust is an open source load testing tool. Locust allows defining user behaviour with Python code, and swarming your system with millions of simultaneous users.
 
-For more information about why [Locust](https://locust.io/) was chosen, or the design document, please see [here](https://github.com/Indicio-tech/aries-akrida/blob/main/docs/DESIGN.md). 
+For more information about why [Locust](https://locust.io/) was chosen, or the design document, please see [here](./DESIGN.md). 
 
 Before proceeding, please make sure you have a billing account set up on your cloud provider and that you will have permissions to create and deploy VM instances and other architectures.
 
@@ -111,7 +111,7 @@ Finally, scroll to the bottom of the page and press the orange `Launch instance 
 
 #### Launching Master and Worker Nodes
 
-Once your new worker Locust VM spins up, SSH into both the `master` and `worker` VMs. Within both of these VMs, enter `cd aries-akrida/` and then `vim .env`.  
+Once your new worker Locust VM spins up, SSH into both the `master` and `worker` VMs. Within both of these VMs, enter `cd owl-akrida/` and then `vim .env`.  
 
 For both of these VMs, replace the `AGENT_IP` variable, within both `.env`s with the external IP of your `worker` [or new] Locust VM (for both of these VMs). Save and quit by doing `:wq`. 
 
@@ -592,7 +592,7 @@ sudo systemctl disable docker docker.socket
 sudo rm -rf /var/lib/docker
 sudo systemctl start docker
 
-cd /home/ubuntu/aries-akrida
+cd /home/ubuntu/owl-akrida
 cat << EOF > .env
 # Copy the below variables from your currently up
 # and running Locust worker VM
@@ -744,7 +744,7 @@ Now, we'll want to use this within the Locust `master`.
 
 ##### Point Locust Master to the Locust Worker Load Balancer
 
-SSH into your Locust `worker` VM and open up your `.env` file of the `aries-akrida` repo. 
+SSH into your Locust `worker` VM and open up your `.env` file of the `owl-akrida` repo. 
 
 Within this `.env` file, you'll want to change the `AGENT_IP` variable to point to this DNS name you just copied, such that
 ```
