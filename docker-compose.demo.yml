@@ -152,4 +152,4 @@ networks:
 
 volumes:
   issuer-db:   
-  mediator-db:  
+  mediator-db:
