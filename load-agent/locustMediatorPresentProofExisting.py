@@ -1,12 +1,8 @@
-from locust import SequentialTaskSet, task, User, between
+from locust import SequentialTaskSet, task, User
 from locustClient import CustomClient
-import time
-import inspect
-import json
+from constants import standard_wait
 
-import fcntl
 import os
-import signal
 
 WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
@@ -88,6 +84,4 @@ class UserBehaviour(SequentialTaskSet):
 
 class Issue(CustomLocust):
     tasks = [UserBehaviour]
-    wait_time = between(
-        float(os.getenv("LOCUST_MIN_WAIT", 0.1)), float(os.getenv("LOCUST_MAX_WAIT", 1))
-    )
+    wait_time = standard_wait
