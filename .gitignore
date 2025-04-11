@@ -6,4 +6,3 @@ load-vdr-proxy/__pycache__
 aries-framework-javascript
 *.DS_Store
 node_modules
-.venv

@@ -205,3 +205,66 @@ RssFile:           51612 kB
 ```
 
 It can be seen that the process uses a unique 49280 kB, but since the RssFile can be shared between processes, only one copy of 51612 kB needs to reside in memory. This results in each process using around ~50 MB of ram with an additional ~50 MB shared with all the processes.
+
+
+
+## Using Wallet type as Askar-Anoncreds instead of Askar
+
+*  Delete old containers
+* In issuer.yml (instance-configs/acapy-agent/configs/issuer.yml) and change  
+the wallet type  -->> wallet-type: askar-anoncreds
+* change the wallet name ,  wallet-name: issuer or any new name
+* In IssuerAgent , in acapy.py file ,
+  def issue_credential_ver2_0(self, connection_id):
+                headers = json.loads(os.getenv("ISSUER_HEADERS"))
+                headers["Content-Type"] = "application/json"
+                
+                issuer_did = os.getenv("CRED_DEF").split(":")[0]
+                schema_parts = os.getenv("SCHEMA").split(":")
+                payload = {
+                        "auto_remove": True,
+                        "comment": "Performance Issuance",
+                        "connection_id": connection_id,
+                        "credential_preview": {
+                        "@type": "issue-credential/2.0/credential-preview",
+                        "attributes": json.loads(os.getenv("CRED_ATTR")),
+                        },
+                        "filter": {
+                        "indy": {
+                                "cred_def_id": os.getenv("CRED_DEF"),
+                                "schema_id": os.getenv("SCHEMA"),
+                                "schema_name": schema_parts[2],
+                                "schema_version": schema_parts[3]
+                        }
+                        },
+                        "trace": True,
+                }
+                r = requests.post(
+                        os.getenv("ISSUER_URL") + "/issue-credential-2.0/send",
+                        json=payload,
+                        headers=headers
+                )
+                
+                if r.status_code != 200:
+                        raise Exception(r.content)
+
+                r = r.json()
+                return {
+                        "connection_id": r["connection_id"], 
+                        "cred_ex_id": r["cred_ex_id"]
+                }
+
+
+
+
+* Note : Dont use IssuerDId and schema_issuer_did  in Json 
+
+* Build the container image
+* create a wallet and add to the ledger.
+* make the wallet type public 
+* create schema and cred -def
+* Make the container image down
+* update the .env file with the cred def and schema details
+
+* build up the container images again 
+* run the test with aries askar-anoncred wallet

@@ -1,29 +1,30 @@
-#FROM ghcr.io/hyperledger/aries-cloudagent-python:py3.9-indy-1.16.0-0.8.2
-#bcgovimages/von-image:py36-1.16-1
-FROM ghcr.io/hyperledger/aries-cloudagent-python:py3.9-indy-1.16.0-0.12.1
+FROM bcgovimages/aries-cloudagent:py3.12_1.0.0
 
 USER root
+
+# Set up Poetry environment variables
 ENV POETRY_HOME=/opt/poetry \
     VENV=/usr/src/app/.venv
 ENV PATH="$POETRY_HOME/bin:$VENV/bin:$PATH"
 
-#RUN curl -sSL https://install.python-poetry.org | python3 -
-# Fixes installation failure
+# Install Poetry
 RUN pip3 install --no-cache-dir poetry
-USER indy
+USER aries
+
 RUN poetry config virtualenvs.create true; poetry config virtualenvs.in-project true
 
-#RUN mkdir acapy_cache_redis && touch acapy_cache_redis/__init__.py
-COPY --chown=indy:indy pyproject.toml poetry.lock ./
+# Copy project dependencies configuration file
+COPY --chown=aries:aries pyproject.toml poetry.lock ./
 
-RUN poetry install 
+# Generate a new lock file and install dependencies
+RUN poetry lock --no-update \
+    && poetry install  # Correct command without --no-cache-dir
+RUN poetry run pip install setuptools
 
-# Make site packages location more accessible (for use with volumes)
-#RUN ln -s $(poetry env info -p)/lib/python3.6/site-packages site-packages
+# Copy application code
+#COPY --chown=aries:aries afj_load_testing/ afj_load_testing/
+COPY --chown=aries:aries configs/ configs/
 
-#COPY --chown=indy:indy docker/default.yml .
-COPY --chown=indy:indy afj_load_testing/ afj_load_testing/
-
-#ENTRYPOINT ["/bin/bash", "-c", "aca-py \"$@\"", "--"]
+# Set the entrypoint and command for the container
 ENTRYPOINT ["/bin/bash", "-c", "poetry run aca-py \"$@\"", "--"]
 CMD ["start", "--arg-file", "default.yml"]

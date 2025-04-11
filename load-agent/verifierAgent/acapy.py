@@ -21,7 +21,7 @@ class AcapyVerifier(BaseVerifier):
                                 os.getenv("VERIFIER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
                                 json={
                                 "metadata": {}, 
-                                "handshake_protocols": ["https://didcomm.org/connections/1.0"]
+                                "handshake_protocols": ["https://didcomm.org/didexchange/1.1"]
                                 },
                                 headers=headers
                         )
@@ -158,11 +158,104 @@ class AcapyVerifier(BaseVerifier):
                 r = r.json()
 
                 return r['presentation_exchange_id']
+        
+
+        def request_verification_2_0(self, connection_id):
+                # From verification side
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
+                headers["Content-Type"] = "application/json"
+
+                verifier_did = os.getenv("CRED_DEF").split(":")[0]
+                schema_parts = os.getenv("SCHEMA").split(":")
+                # Might need to change nonce
+                # TO DO: Generalize schema parts
+                
+                payload = {
+                        "auto_remove": False,
+                        "auto_verify": True,
+                        "comment": "Performance Verification",
+                        "connection_id": connection_id, 
+                        "presentation_request": {
+                                "indy": {
+                                "name": "PerfScore",  
+                                "requested_attributes": {
+                                        item["name"]: {
+                                        "name": item["name"],
+                                        }
+                                        for item in json.loads(os.getenv("CRED_ATTR"))
+                                },
+                                "requested_predicates": {},
+                                "version": "1.0",
+                                }
+                        },
+                        "trace": True,
+                        }
+                        
+                r = requests.post(
+                        os.getenv("VERIFIER_URL") + "/present-proof-2.0/send-request",
+                        json=payload,
+                        headers=headers,
+                )
+
+                try:
+                        if r.status_code != 200:
+                                raise Exception("Request was not successful: ", r.content)
+                except JSONDecodeError as e:
+                        raise Exception(
+                                "Encountered JSONDecodeError while parsing the request: ", r
+                        )
+                
+                r = r.json()
+
+                return r['pres_ex_id']
+
+
+        def request_non_revo_verification(self, connection_id):
+                # From verification side
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
+                headers["Content-Type"] = "application/json"
+
+                verifier_did = os.getenv("CRED_DEF_NR").split(":")[0]
+                schema_parts = os.getenv("SCHEMA_NR").split(":")
+
+                # Might need to change nonce
+                # TO DO: Generalize schema parts
+                r = requests.post(
+                        os.getenv("VERIFIER_URL") + "/present-proof/send-request",
+                        json={
+                                "auto_remove": False,
+                                "auto_verify": True,
+                                "comment": "Performance Verification",
+                                "connection_id": connection_id,
+                                "proof_request": {
+                                "name": "PerfScore",
+                                "requested_attributes": {
+                                        item["name"]: {"name": item["name"]}
+                                        for item in json.loads(os.getenv("CRED_ATTR"))
+                                },
+                                "requested_predicates": {},
+                                "version": "1.0",
+                                },
+                                "trace": True,
+                        },
+                        headers=headers,
+                )
+
+                try:
+                        if r.status_code != 200:
+                                raise Exception("Request was not successful: ", r.content)
+                except JSONDecodeError as e:
+                        raise Exception(
+                                "Encountered JSONDecodeError while parsing the request: ", r
+                        )
+                
+                r = r.json()
+
+                return r['presentation_exchange_id']
 
         def verify_verification(self, presentation_exchange_id):
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
                 headers["Content-Type"] = "application/json"
-                
                 # Want to do a for loop
                 iteration = 0
                 try:
@@ -176,6 +269,40 @@ class AcapyVerifier(BaseVerifier):
                                         and g.json()["state"] != "presentation_received"
                                 ):
                                         "request_sent" and g.json()["state"] != "presentation_received"
+                                        break
+                                iteration += 1
+                                time.sleep(1)
+
+                        if g.json()["verified"] != "true":
+                                raise AssertionError(
+                                        f"Presentation was not successfully verified. Presentation in state {g.json()['state']}"
+                                )
+
+                except JSONDecodeError as e:
+                        raise Exception(
+                                "Encountered JSONDecodeError while getting the presentation record: ", g
+                        )
+
+                return True
+        
+
+        def verify_verification_2_0(self, pres_ex_id):
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
+                headers["Content-Type"] = "application/json"
+                # Want to do a for loop
+                iteration = 0
+                try:
+                        while iteration < VERIFIED_TIMEOUT_SECONDS:
+                                g = requests.get(
+                                        os.getenv("VERIFIER_URL") + f"/present-proof-2.0/records/{pres_ex_id}",
+                                        headers=headers,
+                                )
+                                response_text = g.json()
+                                if (
+                                        g.json()["state"] != "request-sent"
+                                        and g.json()["state"] != "presentation-received"
+                                ):
+                                        "request-sent" and g.json()["state"] != "presentation-received"
                                         break
                                 iteration += 1
                                 time.sleep(1)
