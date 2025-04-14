@@ -32,10 +32,15 @@ class UserBehaviour(SequentialTaskSet):
         self.connection = connection
 
     @task
+    def create_did(self):
+        didKey = self.client.create_holder_didKey()
+        self.didKey = didKey
+
+    @task
     def receive_credential(self):
         self.client.ensure_is_running()
 
-        credential = self.client.receive_credential(self.invite['connection_id'])
+        credential = self.client.receive_credential(self.invite['connection_id'], self.didKey)
 
     @task
     def get_verifier_invite(self):

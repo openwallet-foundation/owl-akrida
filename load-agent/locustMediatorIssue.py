@@ -25,6 +25,11 @@ class UserBehaviour(SequentialTaskSet):
         self.invite = invite
 
     @task
+    def create_did(self):
+        didKey = self.client.create_holder_didKey()
+        self.didKey = didKey
+    
+    @task
     def accept_invite(self):
         self.client.ensure_is_running()
 
@@ -35,7 +40,7 @@ class UserBehaviour(SequentialTaskSet):
     def receive_credential(self):
         self.client.ensure_is_running()
 
-        credential = self.client.receive_credential(self.invite['connection_id'])
+        credential = self.client.receive_credential(self.invite['connection_id'], self.didKey)
 
 class Issue(CustomLocust):
     tasks = [UserBehaviour]

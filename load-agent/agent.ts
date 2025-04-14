@@ -6,7 +6,8 @@ import {
   LegacyIndyProofFormatService,
   V1CredentialProtocol,
   V1ProofProtocol,
-} from '@credo-ts/anoncreds'
+  DataIntegrityCredentialFormatService,
+} from '@credo-ts/anoncreds';
 
 import {
   IndyVdrAnonCredsRegistry,
@@ -20,32 +21,34 @@ import {
 import { AskarModule, AskarMultiWalletDatabaseScheme } from '@credo-ts/askar'
 // import { ariesAskar } from '@hyperledger/aries-askar-react-native'
 // import { AskarModule } from '@aries-framework/askar'
-
+  
 import {
   AutoAcceptCredential,
   AutoAcceptProof,
-  DidsModule,
   ProofsModule,
   V2ProofProtocol,
   CredentialsModule,
   V2CredentialProtocol,
   ConnectionsModule,
   W3cCredentialsModule,
-  KeyDidRegistrar,
-  KeyDidResolver,
+  ConsoleLogger, 
+  CredentialEventTypes,
   CacheModule,
   InMemoryLruCache,
   WebDidResolver,
   HttpOutboundTransport,
   WsOutboundTransport,
   LogLevel,
-  Agent,
+  Agent, 
+  DidRecord,
+  DidsModule, 
+  DifPresentationExchangeProofFormatService, 
   JsonLdCredentialFormatService,
-  DifPresentationExchangeProofFormatService,
-  MediationRecipientModule,
-  MediatorPickupStrategy,
-
-  CredentialEventTypes,
+  KeyDidRegistrar,
+  KeyDidResolver,
+  KeyType,
+  MediationRecipientModule, 
+  MediatorPickupStrategy, 
   ProofEventTypes,
   MediatorModule,
   DidCommMimeType,
@@ -62,6 +65,8 @@ import { anoncreds } from '@hyperledger/anoncreds-nodejs'
 import { ariesAskar } from '@hyperledger/aries-askar-nodejs'
 import { indyVdr } from '@hyperledger/indy-vdr-nodejs'
 import { agentDependencies, HttpInboundTransport, WsInboundTransport } from '@credo-ts/node'
+import { PushNotificationsFcmModule } from '@credo-ts/push-notifications';
+import { QuestionAnswerModule } from '@credo-ts/question-answer';
 
 var config = require('./config.js')
 
@@ -127,7 +132,8 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     // }),
     mediationRecipient: new MediationRecipientModule({
       mediatorInvitationUrl: mediation_url,
-      mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
+      mediatorPickupStrategy: MediatorPickupStrategy.PickUpV2LiveMode,
+      // mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
     }),
     anoncreds: new AnonCredsModule({
       registries: [new IndyVdrAnonCredsRegistry()],
@@ -139,20 +145,30 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     proofs: new ProofsModule({
       proofProtocols: [
         new V1ProofProtocol({
-          indyProofFormat: legacyIndyProofFormat,
+          indyProofFormat: new LegacyIndyProofFormatService(),
         }),
         new V2ProofProtocol({
-          proofFormats: [legacyIndyProofFormat, anonCredsProofFormatService],
+          proofFormats: [
+            legacyIndyProofFormat,
+            anonCredsProofFormatService,
+            new DifPresentationExchangeProofFormatService(),
+          ],
         }),
       ],
     }),
     credentials: new CredentialsModule({
+      autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       credentialProtocols: [
         new V1CredentialProtocol({
           indyCredentialFormat: legacyIndyCredentialFormat,
         }),
         new V2CredentialProtocol({
-          credentialFormats: [legacyIndyCredentialFormat,anonCredsCredentialFormatService],
+          credentialFormats: [
+            new LegacyIndyCredentialFormatService(),
+            new JsonLdCredentialFormatService(),
+            anonCredsCredentialFormatService,
+            new DataIntegrityCredentialFormatService(),
+          ],
         }),
       ],
     }),
@@ -160,6 +176,9 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       registrars: [new IndyVdrIndyDidRegistrar(), new KeyDidRegistrar()],
       resolvers: [new IndyVdrIndyDidResolver(), new KeyDidResolver(), new WebDidResolver()],
     }),
+    pushNotificationsFcm: new PushNotificationsFcmModule(),
+    questionAnswer: new QuestionAnswerModule()
+
   }
 
   // configure mediator or endpoints
@@ -529,6 +548,53 @@ let presentationExchange = async (agent) => {
   }
 }
 
+// w3cPresentationExchange
+let w3cPresentationExchange = async (agent: Agent) => {
+  // wait for the ping
+  let timeout = config.verified_timeout_seconds * 1000
+
+  const TimeDelay = new Promise((resolve, reject) => {
+    setTimeout(resolve, timeout, false)
+  })
+
+  var def = deferred()
+
+  let onRequest = async (event) => {
+    let payload = event.payload
+
+    switch (payload.proofRecord.state) {
+      case ProofState.RequestReceived:
+        const requestedCredentials =
+          await agent.proofs.selectCredentialsForRequest({
+            proofRecordId: payload.proofRecord.id,
+            // config: {
+            //   filterByPresentationPreview: true,
+            // },
+          })
+
+        requestedCredentials.proofFormats
+        await agent.proofs.acceptRequest({
+          proofRecordId: payload.proofRecord.id,
+          proofFormats: requestedCredentials.proofFormats,
+        })
+        agent.events.off(ProofEventTypes.ProofStateChanged, onRequest)
+        def.resolve(true)
+        break
+    }
+  }
+
+  agent.events.on(ProofEventTypes.ProofStateChanged, onRequest)
+
+  // Wait for presentation
+  let value = await Promise.race([TimeDelay, def.promise])
+
+  if (!value) {
+    // No longer need to listen to the event in case of failure
+    agent.events.off(ProofEventTypes.ProofStateChanged, onRequest)
+    throw 'Presentation timeout!'
+  }
+}
+
 let receiveMessage = async (agent) => {
   // wait for the ping
   let timeout = config.verified_timeout_seconds * 1000
@@ -572,7 +638,44 @@ let receiveMessage = async (agent) => {
   }
 }
 
-// var readline = require('readline')
+let getDefaultHolderDidKeyDocument = async (agent) => {
+  try {
+    let defaultDidRecord: DidRecord | null
+    const didRepository = await agent.dependencyManager.resolve(DidRepository)
+
+    defaultDidRecord = await didRepository.findSingleByQuery(agent.context, {
+      isDefault: true,
+    })
+
+    if (!defaultDidRecord) {
+      const did = await agent.dids.create({
+        method: 'key',
+        options: {
+          keyType: KeyType.Ed25519,
+        },
+      })
+
+      const [didRecord] = await agent.dids.getCreatedDids({
+        did: did.didState.did,
+        method: 'key',
+      })
+
+      didRecord.setTag('isDefault', true)
+
+      await didRepository.update(agent.context, didRecord)
+      defaultDidRecord = didRecord
+    }
+
+    const resolvedDidDocument = await agent.dids.resolveDidDocument(defaultDidRecord.did)
+    // console.log('This is resolved did document::::', JSON.stringify(resolvedDidDocument, null, 2))
+    return resolvedDidDocument
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Error did create', error)
+  }
+}
+
+var readline = require('readline')
 
 var rl = readline.createInterface(process.stdin, null)
 
@@ -621,6 +724,11 @@ rl.on('line', async (line) => {
       process.stdout.write(
         JSON.stringify({ error: 0, result: 'Delete OOB Record' }) + '\n'
       )
+    } else if (command['cmd'] == 'createHolderDIDKey') {
+      let didResult = await getDefaultHolderDidKeyDocument(agent)
+      process.stdout.write(
+        JSON.stringify({ error: 0, did: didResult,result: 'Created did:key for holder' }) + '\n'
+      )
     } else if (command['cmd'] == 'receiveInvitation') {
       let connection = await receiveInvitation(agent, command['invitationUrl'])
 
@@ -652,6 +760,12 @@ rl.on('line', async (line) => {
 
       process.stdout.write(
         JSON.stringify({ error: 0, result: 'Presentation Exchange' }) + '\n'
+      )
+    } else if (command['cmd'] == 'w3cPresentationExchange') {
+      await w3cPresentationExchange(agent)
+
+      process.stdout.write(
+        JSON.stringify({ error: 0, result: 'w3c Presentation Exchange' }) + '\n'
       )
     } else if (command['cmd'] == 'receiveMessage') {
       await receiveMessage(agent)

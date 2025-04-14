@@ -3,6 +3,8 @@ import json
 import os
 import requests
 import time
+import uuid
+from .utils.jsonldVerificationPayload import get_jsonld_verification_payload
 
 from json.decoder import JSONDecodeError
 
@@ -158,17 +160,54 @@ class AcapyVerifier(BaseVerifier):
                 r = r.json()
 
                 return r['presentation_exchange_id']
+        
+        def request_jsonld_verification(self, connection_id):
+                # From verification side
+                headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
+                headers["Content-Type"] = "application/json"
+
+                json_data = os.getenv("JSONLD_VERIFICATION_PAYLOAD")
+                if json_data:
+                        json_data=json.loads(json_data)
+                        json_data["connection_id"]=connection_id
+                        json_data["presentation_request"]["dif"]["presentation_definition"]["id"]=str(uuid.uuid4()) #generate_random_uuid
+                        json_data["presentation_request"]["dif"]["presentation_definition"]["input_descriptors"][0]["id"]=str(uuid.uuid4()) #generate_random_uuid
+                else:
+                        json_data=get_jsonld_verification_payload(connection_id=connection_id)
+
+                r = requests.post(
+                        os.getenv("VERIFIER_URL") + "/present-proof-2.0/send-request",
+                        json=json_data,
+                        headers=headers,
+                )
+
+                try:
+                        if r.status_code != 200:
+                                raise Exception("Request was not successful: ", r.content)
+                except JSONDecodeError as e:
+                        raise Exception(
+                                "Encountered JSONDecodeError while parsing the request: ", r
+                        )
+                
+                r = r.json()
+
+                return r['pres_ex_id']
 
         def verify_verification(self, presentation_exchange_id):
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))  # headers same
                 headers["Content-Type"] = "application/json"
-                
+                url=''
+                credential_format = os.getenv("CREDENTIAL_FORMAT", default="indy")
+                if (credential_format == "jsonld"):
+                        url = os.getenv("VERIFIER_URL") + "/present-proof-2.0/records/" + presentation_exchange_id
+                elif (credential_format == "indy"):
+                        url = os.getenv("VERIFIER_URL") + "/present-proof/records/" + presentation_exchange_id
                 # Want to do a for loop
                 iteration = 0
                 try:
                         while iteration < VERIFIED_TIMEOUT_SECONDS:
                                 g = requests.get(
-                                        os.getenv("VERIFIER_URL") + f"/present-proof/records/{presentation_exchange_id}",
+                                        url=url,
                                         headers=headers,
                                 )
                                 if (
