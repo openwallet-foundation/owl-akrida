@@ -1,12 +1,6 @@
 from locust import SequentialTaskSet, task, User, between
 from locustClient import CustomClient
-import time
-import inspect
-import json
-
-import fcntl
-import os
-import signal
+from constants import standard_wait
 
 class CustomLocust(User):
     abstract = True
@@ -27,5 +21,5 @@ class UserBehaviour(SequentialTaskSet):
 
 class Liveness(CustomLocust):
     tasks = [UserBehaviour]
-    wait_time = between(float(os.getenv('LOCUST_MIN_WAIT',0.1)), float(os.getenv('LOCUST_MAX_WAIT',1)))
+    wait_time = standard_wait
 #    host = "example.com"

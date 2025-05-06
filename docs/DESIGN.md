@@ -1,4 +1,4 @@
-# Aries Akrida Design
+# OWL Akrida Design
 
 Typically, three to four types of agents may be involved in a decentralized identity environment. There is typically a large number of holder agents, a mediator agent for the holder agents, and one or more issuer and verifier agents. In some environments, a mediator agent isn't required as the holder agents do not have dynamic IP addresses.
 
@@ -10,7 +10,7 @@ Example of a typical environment without mediator:
 
 ![Typical environment without mediator](./images/holderissuerverifier.png)
 
-Aries Akrida takes the place of the holder agents, as the typical case for load testing is to test the server infrastructure of environments. In this case the server infrastructure includes the mediator, issuer, and verifier agents. The holder agent is the client.
+OWL Akrida takes the place of the holder agents, as the typical case for load testing is to test the server infrastructure of environments. In this case the server infrastructure includes the mediator, issuer, and verifier agents. The holder agent is the client.
 
 Example of Locust with a mediator:
 
@@ -28,21 +28,21 @@ Main Design Requirements
 - Use proven load scale platform ( Locust )
 - Support scaling with the use of clustering ( Locust )
 - Provide easy to use interface with metrics ( Locust )
-- Ensure each user scales independently ( Independent Aries Framework Javascript Subprocesses )
-- Simulate real world clients ( Aries Framework Javascript )
+- Ensure each user scales independently ( Independent Credo Subprocesses )
+- Simulate real world clients ( Credo )
 - Open Source License
 - Community around existing tools
 
-Aries Akrida was built using the following code bases.
+OWL Akrida was built using the following code bases.
 
 - Locust
-- Aries Framework Javascript
+- Credo
 
 Locust is already a proven open source solution for load testing various environments. While Locust's main focus is on performance of HTTP based interfaces, Locust has the ability to be extended to support other protocols.
 
-Aries Akrida uses Aries Framework Javascript for the DIDComm protocol. Aries Framework Javascript was chosen because many DIDComm clients are written and use Aries Framework Javascript. By using Aries Framework Javascript as the client, Aries Akirda can best simulate real world clients.
+OWL Akrida uses Credo for the DIDComm protocol. Credo was chosen because many DIDComm clients are written and use Credo. By using Credo as the client, OWL Akirda can best simulate real world clients.
 
-Aries Akrida uses a subprocess's stdin/stdout to call Aries Framework Javascript from Locust. Other Frameworks could be used in place of Aries Framework Javascript as long as the implement the same calls.
+OWL Akrida uses a subprocess's stdin/stdout to call Credo from Locust. Other Frameworks could be used in place of Credo as long as the implement the same calls.
 
 ## Why Locust
 
@@ -195,11 +195,11 @@ The agent.js is an event based architecture. It has a readline loop that listens
 
 cmd: start
 
-description: Runs the initialization of the Aries Framework Javascript agent, including any connections to mediators. The startup command must be run before any other commands.
+description: Runs the initialization of the Credo agent, including any connections to mediators. The startup command must be run before any other commands.
 
 parameters: withMediation, port
 
-withMediation: withMediation accepts a boolean value. With mediation indicates that Aries Framework Javascript should use the mediator defined in the .env file.
+withMediation: withMediation accepts a boolean value. With mediation indicates that Credo should use the mediator defined in the .env file.
 
 port: if withMediation is false, a port must be defined for agent.js to use for incoming DIDComm messages. The port must be mapped in docker-compose and the firewall so external services can access the port. The .env file specifies a starting and ending port. If more processes are started than ports are mapped, it can cause the Locust process to hang. If a large number of ports are mapped, it can cause a significant delay in docker-compose starting up.
 
@@ -223,7 +223,7 @@ stdout <- {"error":1,"result":{}}
 
 cmd: shutdown
 
-description: Cleanly shuts down the Aries Framework Javascript agent and terminates the agent.js process. If the shutdown command is unsuccessful within the defined timeout, Locust will kill the subprocess.
+description: Cleanly shuts down the Credo agent and terminates the agent.js process. If the shutdown command is unsuccessful within the defined timeout, Locust will kill the subprocess.
 
 parameters: None
 

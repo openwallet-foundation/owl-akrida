@@ -1,19 +1,20 @@
-version: '3'
 services:
 
-  load-agent:
+  load-vdr-proxy:
     build:
       context: .
-      target: dev
-    hostname: load-agent
+      target: release
+      dockerfile: ./Dockerfile.vdr
+    hostname: load-vdr-proxy
     restart: unless-stopped
     user: root 
     tty: true
     command: >
-      locust -f ${LOCUST_FILES}
+      locust -f ${LOCUST_FILES} 
     ports:
-      - "${START_PORT}-${END_PORT}:${START_PORT}-${END_PORT}"
       - "8089:8089"
+      - "8090:8090"
+      - "${START_PORT}-${END_PORT}:${START_PORT}-${END_PORT}"
     environment: 
       - NODE_ENV=${NODE_ENV}
       - BROWSER=none  # don't open the web browser
@@ -37,12 +38,16 @@ services:
       - VERIFIED_TIMEOUT_SECONDS=${VERIFIED_TIMEOUT_SECONDS}
       - WITH_MEDIATION=${WITH_MEDIATION}
       - OOB_INVITE=${OOB_INVITE}
-    volumes:
-      - ./load-agent:/load-agent:rw
+      - VDR_BASE_URL=${VDR_BASE_URL}
+      - VDR_CRED_DEF=${VDR_CRED_DEF}
+      - VDR_SCHEMA=${VDR_SCHEMA}
+      - VDR_DID=${VDR_DID}
+      - VDR_REV_REG_DEF=${VDR_REV_REG_DEF}
     networks:
       - app-network
 
 # Docker Networks
 networks:
   app-network:
-    driver: bridge
+    name: vdr-load-test
+    external: true
