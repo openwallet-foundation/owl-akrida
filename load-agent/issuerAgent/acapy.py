@@ -6,50 +6,31 @@ import time
 
 class AcapyIssuer(BaseIssuer):
         
-        def get_invite(self, out_of_band=False):
+        def get_invite(self):
                 headers = json.loads(os.getenv("ISSUER_HEADERS"))
                 headers["Content-Type"] = "application/json"
 
-                if out_of_band:
-                        # Out of Band Connection 
-                        # (ACA-Py v10.4 - only works with connections protocol, not DIDExchange) 
-                        r = requests.post(
-                                os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
-                                json={
-                                "metadata": {}, 
-                                "handshake_protocols": ["https://didcomm.org/connections/1.0"]
-                                },
-                                headers=headers
-                        )
-                else:
-                        # Regular Connection
-                        r = requests.post(
-                                os.getenv("ISSUER_URL") + "/connections/create-invitation?auto_accept=true",
-                                json={"metadata": {}, "my_label": "Test"},
-                                headers=headers,
-                        )
-
-                        # Ensure the request worked
-                        try:
-                                try_var = r.json()["invitation_url"]
-                        except Exception:
-                                raise Exception("Failed to get invitation url. Request: ", r.json())
-                        if r.status_code != 200:
-                                raise Exception(r.content)
+                # Out of Band Connection 
+                r = requests.post(
+                        os.getenv("ISSUER_URL") + "/out-of-band/create-invitation?auto_accept=true", 
+                        json={
+                        "metadata": {}, 
+                        "handshake_protocols": ["did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"]
+                        },
+                        headers=headers
+                )
 
                 r = r.json()
 
-                # If OOB, need to grab connection_id
-                if out_of_band:
-                        invitation_msg_id = r['invi_msg_id']
-                        g = requests.get(
-                                os.getenv("ISSUER_URL") + "/connections",
-                                params={"invitation_msg_id": invitation_msg_id},
-                                headers=headers,
-                        )
-                        # Returns only one
-                        connection_id = g.json()['results'][0]['connection_id']
-                        r['connection_id'] = connection_id 
+                invitation_msg_id = r['invi_msg_id']
+                g = requests.get(
+                        os.getenv("ISSUER_URL") + "/connections",
+                        params={"invitation_msg_id": invitation_msg_id},
+                        headers=headers,
+                )
+                # Returns only one
+                connection_id = g.json()['results'][0]['connection_id']
+                r['connection_id'] = connection_id 
                 
                 return {
                         'invitation_url': r['invitation_url'], 

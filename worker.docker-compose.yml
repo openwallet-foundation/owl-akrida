@@ -37,8 +37,6 @@ services:
       - MESSAGE_TO_SEND=${MESSAGE_TO_SEND}
       - VERIFIED_TIMEOUT_SECONDS=${VERIFIED_TIMEOUT_SECONDS}
       - WITH_MEDIATION=${WITH_MEDIATION}
-      - OOB_INVITE=${OOB_INVITE}
-
     networks:
       - app-network
 
