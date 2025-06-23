@@ -13,7 +13,6 @@ import {
   IndyVdrIndyDidResolver,
   IndyVdrModule,
   IndyVdrIndyDidRegistrar,
-  IndyVdrPoolConfig,
 } from '@credo-ts/indy-vdr'
 
 // var indySdk = require('indy-sdk')
@@ -30,18 +29,12 @@ import {
   CredentialsModule,
   V2CredentialProtocol,
   ConnectionsModule,
-  W3cCredentialsModule,
   KeyDidRegistrar,
   KeyDidResolver,
-  CacheModule,
-  InMemoryLruCache,
   WebDidResolver,
   HttpOutboundTransport,
   WsOutboundTransport,
-  LogLevel,
   Agent,
-  JsonLdCredentialFormatService,
-  DifPresentationExchangeProofFormatService,
   MediationRecipientModule,
   MediatorPickupStrategy,
 
@@ -61,7 +54,7 @@ import {
 import { anoncreds } from '@hyperledger/anoncreds-nodejs'
 import { ariesAskar } from '@hyperledger/aries-askar-nodejs'
 import { indyVdr } from '@hyperledger/indy-vdr-nodejs'
-import { agentDependencies, HttpInboundTransport, WsInboundTransport } from '@credo-ts/node'
+import { agentDependencies, HttpInboundTransport } from '@credo-ts/node'
 
 var config = require('./config.js')
 
@@ -127,7 +120,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     // }),
     mediationRecipient: new MediationRecipientModule({
       mediatorInvitationUrl: mediation_url,
-      mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
+      mediatorPickupStrategy: MediatorPickupStrategy.Implicit,      
     }),
     anoncreds: new AnonCredsModule({
       registries: [new IndyVdrAnonCredsRegistry()],
@@ -227,6 +220,14 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
 
     // Initialize the agent
     await agent.initialize()
+
+    if (config.pickup_strategy === 'pickupv2-live') {
+      process.stderr.write('Pickup strategy: pickupv2-live')
+      await agent.mediationRecipient.initiateMessagePickup(
+        undefined,
+        MediatorPickupStrategy.PickUpV2LiveMode
+      )
+    }
 
     // wait for ws to be configured
     let value = await Promise.race([TimeDelay, def.promise])
