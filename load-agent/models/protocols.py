@@ -9,7 +9,7 @@ class BaseModel(BaseModel):
 
 class CredentialProposalV1(BaseModel):
     type: str = Field('issue-credential/1.0/credential-preview', alias='@type')
-    attributes: dict = Field()
+    attributes: list = Field()
 
 
 class IssueCredentialV1(BaseModel):

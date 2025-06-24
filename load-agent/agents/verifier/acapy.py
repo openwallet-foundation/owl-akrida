@@ -16,8 +16,16 @@ class AcapyVerifier(BaseVerifier):
                         'Content-Type': 'application/json'
                 }
         
-                self.cred_attributes = Settings.CRED_ATTR
                 self.verifiedTimeoutSeconds = Settings.VERIFIED_TIMEOUT_SECONDS
+                self.proof_request = ProofRequest(
+                        name='PerfScore',
+                        requested_attributes={
+                                item["name"]: {"name": item["name"]}
+                                for item in Settings.CRED_ATTR
+                        },
+                        requested_predicates={},
+                        version='1.0'
+                ).model_dump()
 
         def get_invite(self):
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))
@@ -72,15 +80,7 @@ class AcapyVerifier(BaseVerifier):
                         f"{self.agent_url}/present-proof/create-request",
                         json=RequestPresentationV1(
                                 comment='Performance Verification',
-                                proof_request=ProofRequest().model_dump(
-                                        name='PerfScore',
-                                        requested_attributes={
-                                                item["name"]: {"name": item["name"]}
-                                                for item in self.cred_attributes
-                                        },
-                                        requested_predicates={},
-                                        version='1.0'
-                                )
+                                proof_request=self.proof_request
                         ).model_dump(),
                         headers=self.headers,
                 )
@@ -104,15 +104,7 @@ class AcapyVerifier(BaseVerifier):
                         json=RequestPresentationV1(
                                 comment='Performance Verification',
                                 connection_id=connection_id,
-                                proof_request=ProofRequest().model_dump(
-                                        name='PerfScore',
-                                        requested_attributes={
-                                                item["name"]: {"name": item["name"]}
-                                                for item in self.cred_attributes
-                                        },
-                                        requested_predicates={},
-                                        version='1.0'
-                                )
+                                proof_request=self.proof_request
                         ).model_dump(),
                         headers=self.headers,
                 )
