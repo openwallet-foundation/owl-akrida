@@ -48,7 +48,7 @@ services:
      context: ./instance-configs/acapy-agent
      dockerfile: ./docker/Dockerfile
     volumes:
-      - ./instance-configs/acapy-agent/configs:/home/indy/configs:ro,z
+      - ./instance-configs/acapy-agent/configs:/home/aries/configs:ro,z
     ports:
       - "8150:8150"
       - "8151:8151"
