@@ -25,7 +25,7 @@ class AcapyVerifier(BaseVerifier):
                         },
                         requested_predicates={},
                         version='1.0'
-                ).model_dump()
+                )
 
         def get_invite(self):
                 headers = json.loads(os.getenv("VERIFIER_HEADERS"))
