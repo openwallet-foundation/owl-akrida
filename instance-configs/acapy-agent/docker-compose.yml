@@ -7,7 +7,7 @@ services:
      context: ./
      dockerfile: ./docker/Dockerfile
     volumes:
-      - ./configs:/home/indy/configs:ro,z
+      - ./configs:/home/aries/configs:ro,z
     ports:
       - "8150:8150"
       - "8151:8151"
