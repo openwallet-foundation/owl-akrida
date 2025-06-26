@@ -10,7 +10,7 @@ services:
     user: root 
     tty: true
     command: >
-      locust -f ${LOCUST_FILES}
+      locust -f locust-files/${LOCUST_FILES}
     ports:
       - "${START_PORT}-${END_PORT}:${START_PORT}-${END_PORT}"
       - "8089:8089"

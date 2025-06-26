@@ -34,7 +34,7 @@ RUN cd indy-sdk/libindy && \
 
 RUN apt-get install -y python3-pip
 
-RUN pip3 install locust==2.14.2
+RUN pip3 install locust==2.14.2 python-dotenv pydantic
 
 FROM base AS dev
 
