@@ -1,6 +1,4 @@
 from .base import BaseVerifier
-import json
-import os
 import requests
 import time
 from models import RequestPresentationV1, ProofRequest
@@ -28,33 +26,25 @@ class AcapyVerifier(BaseVerifier):
                 )
 
         def get_invite(self):
-                headers = json.loads(os.getenv("VERIFIER_HEADERS"))
-                headers["Content-Type"] = "application/json"
-
-                # Out of Band Connection 
                 r = requests.post(
                         f"{self.agent_url}/out-of-band/create-invitation?auto_accept=true", 
                         json={
-                        "handshake_protocols": ["did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"]
+                        "handshake_protocols": Settings.HANDSHAKE_PROTOCOLS
                         },
                         headers=self.headers
                 )
+                invitation = r.json()
 
-                r = r.json()
-
-                invitation_msg_id = r['invi_msg_id']
-                g = requests.get(
+                r = requests.get(
                         f"{self.agent_url}/connections",
-                        params={"invitation_msg_id": invitation_msg_id},
+                        params={"invitation_msg_id": invitation['invi_msg_id']},
                         headers=self.headers,
                 )
-                # Returns only one
-                connection_id = g.json()['results'][0]['connection_id']
-                r['connection_id'] = connection_id 
+                connection = r.json()['results'][0]
                 
                 return {
-                        'invitation_url': r['invitation_url'], 
-                        'connection_id': r['connection_id']
+                        'invitation_url': invitation['invitation_url'], 
+                        'connection_id': connection['connection_id']
                 }
 
         def is_up(self):
@@ -66,7 +56,7 @@ class AcapyVerifier(BaseVerifier):
                         if r.status_code != 200:
                                 raise Exception(r.content)
 
-                        r = r.json()
+                        r.json()
                 except:
                         return False
 
@@ -88,12 +78,13 @@ class AcapyVerifier(BaseVerifier):
                 try:
                         if r.status_code != 200:
                                 raise Exception("Request was not successful: ", r.content)
+                        presentation_request = r.json()
                 except JSONDecodeError:
                         raise Exception(
                                 "Encountered JSONDecodeError while parsing the request: ", r.text
                         )
                 
-                return r.json()
+                return presentation_request
         
         def request_verification(self, connection_id):
                 # From verification side
@@ -112,41 +103,42 @@ class AcapyVerifier(BaseVerifier):
                 try:
                         if r.status_code != 200:
                                 raise Exception("Request was not successful: ", r.content)
+                        presentation_request = r.json()
                 except JSONDecodeError:
                         raise Exception(
                                 "Encountered JSONDecodeError while parsing the request: ", r.text
                         )
-                
-                r = r.json()
 
-                return r['presentation_exchange_id']
+                return presentation_request
 
         def verify_verification(self, presentation_exchange_id):
                 # Want to do a for loop
                 iteration = 0
                 try:
                         while iteration < self.verifiedTimeoutSeconds:
-                                g = requests.get(
+                                r = requests.get(
                                         f"{self.agent_url}/present-proof/records/{presentation_exchange_id}",
                                         headers=self.headers,
                                 )
+                                presentation_record = r.json()
+                                presentation_state = presentation_record["state"]
                                 if (
-                                        g.json()["state"] != "request_sent"
-                                        and g.json()["state"] != "presentation_received"
+                                        presentation_state != "request_sent"
+                                        and presentation_state != "presentation_received"
                                 ):
-                                        "request_sent" and g.json()["state"] != "presentation_received"
+                                        "request_sent" and presentation_state != "presentation_received"
                                         break
                                 iteration += 1
                                 time.sleep(1)
 
-                        if g.json()["verified"] != "true":
+                        if presentation_record["verified"] != "true":
                                 raise AssertionError(
-                                        f"Presentation was not successfully verified. Presentation in state {g.json()['state']}"
+                                        f"Presentation was not successfully verified. Presentation in state {presentation_state}"
                                 )
 
                 except JSONDecodeError as e:
                         raise Exception(
-                                "Encountered JSONDecodeError while getting the presentation record: ", g
+                                "Encountered JSONDecodeError while getting the presentation record: ", e
                         )
 
                 return True

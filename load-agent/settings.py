@@ -44,3 +44,9 @@ class Settings(object):
     # ISSUER_API_KEY: str = os.getenv("ISSUER_API_KEY", None)
     # ISSUER_API_TOKEN: str = os.getenv("ISSUER_API_TOKEN", None)
     ISSUER_HEADERS: str = json.loads(os.getenv("ISSUER_HEADERS"))
+    
+    # Handshake protocols to use
+    HANDSHAKE_PROTOCOLS: list = [
+        "https://didcomm.org/didexchange/1.0",
+        "https://didcomm.org/didexchange/1.1"
+    ]
