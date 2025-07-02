@@ -6,7 +6,6 @@ from settings import Settings
 
 class BaseAgent(ABC):
     def __init__(self):
-        print("BaseAgent initialized")
         self.agent_url = Settings.ISSUER_URL
         self.headers = Settings.ISSUER_HEADERS | {"Content-Type": "application/json"}
 

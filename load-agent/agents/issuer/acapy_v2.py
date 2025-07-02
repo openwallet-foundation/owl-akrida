@@ -17,7 +17,6 @@ from .base import BaseIssuer
 
 class AcapyIssuer(BaseIssuer):
     def __init__(self):
-        print("AcapyIssuer initialized")
         super().__init__()
         self.filter = Settings.FILTER_TYPE
 

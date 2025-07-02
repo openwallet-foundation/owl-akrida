@@ -7,7 +7,6 @@ from ..base import BaseAgent
 
 class BaseIssuer(BaseAgent):
     def __init__(self):
-        print("BaseIssuer initialized")
         super().__init__()
         self.label = "Test Issuer"
         self.agent_url = Settings.ISSUER_URL

@@ -7,7 +7,6 @@ from ..base import BaseAgent
 
 class BaseVerifier(BaseAgent):
     def __init__(self):
-        print("BaseVerifier initialized")
         super().__init__()
         self.label = "Test Verifier"
         self.agent_url = Settings.VERIFIER_URL
