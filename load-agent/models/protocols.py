@@ -1,5 +1,6 @@
+from typing import Any, Dict
+
 from pydantic import BaseModel, Field
-from typing import Dict, Any
 
 
 class BaseModel(BaseModel):
@@ -7,17 +8,17 @@ class BaseModel(BaseModel):
         return super().model_dump(by_alias=True, exclude_none=True, **kwargs)
 
 
-class CredentialProposalV1(BaseModel):
+class CredentialProposal(BaseModel):
     type: str = Field('issue-credential/1.0/credential-preview', alias='@type')
     attributes: list = Field()
 
 
-class IssueCredentialV1(BaseModel):
+class IssueCredential(BaseModel):
     auto_remove: bool = Field(True)
     comment: str = Field()
     connection_id: str = Field()
     cred_def_id: str = Field()
-    credential_proposal: CredentialProposalV1 = Field()
+    credential_proposal: CredentialProposal = Field()
     issuer_did: str = Field()
     schema_id: str = Field()
     schema_issuer_did: str = Field()
@@ -33,7 +34,7 @@ class ProofRequest(BaseModel):
     version: str = Field()
 
 
-class RequestPresentationV1(BaseModel):
+class RequestPresentation(BaseModel):
     auto_remove: bool = Field(False)
     auto_verify: bool = Field(True)
     connection_id: str = Field(None)

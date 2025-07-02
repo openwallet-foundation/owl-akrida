@@ -1,15 +1,14 @@
-from locust import events
-import time
 import inspect
 import json
-
-from settings import Settings
-
 import os
 import signal
+import time
 
-from gevent import subprocess, select
 from gevent import lock as gevent_lock
+from gevent import select, subprocess
+from locust import events
+from settings import Settings
+
 
 class PortManager:
     def __init__(self):
@@ -83,15 +82,41 @@ class CustomClient:
         self.oobInvite = Settings.OOB_INVITE
         self.messageToSend = Settings.MESSAGE_TO_SEND
 
-
         # Load modules here depending on config
-        if self.issuerType == 'acapy':
-            from agents.issuer.acapy import AcapyIssuer
-            self.issuer = AcapyIssuer()
-            
-        if self.verifierType == 'acapy':
-            from agents.verifier.acapy import AcapyVerifier
-            self.verifier = AcapyVerifier()
+        self._load_issuer()
+        self._load_verifier()
+
+    def _load_issuer(self):
+        """Load issuer agent based on configuration"""
+        issuer_classes = {
+            'acapy': lambda: self._import_and_create('agents.issuer.acapy', 'AcapyIssuer'),
+            'acapy_v2': lambda: self._import_and_create('agents.issuer.acapy_v2', 'AcapyIssuer'),
+        }
+        
+        loader = issuer_classes.get(self.issuerType.lower())
+        if loader:
+            self.issuer = loader()
+        else:
+            raise ValueError(f"Unsupported issuer type: {self.issuerType}")
+
+    def _load_verifier(self):
+        """Load verifier agent based on configuration"""
+        verifier_classes = {
+            'acapy': lambda: self._import_and_create('agents.verifier.acapy', 'AcapyVerifier'),
+            'acapy_v2': lambda: self._import_and_create('agents.verifier.acapy_v2', 'AcapyVerifier'),
+        }
+        
+        loader = verifier_classes.get(self.verifierType.lower())
+        if loader:
+            self.verifier = loader()
+        else:
+            raise ValueError(f"Unsupported verifier type: {self.verifierType}")
+
+    def _import_and_create(self, module_path, class_name):
+        """Dynamically import module and create instance"""
+        module = __import__(module_path, fromlist=[class_name])
+        cls = getattr(module, class_name)
+        return cls()
             
     _locust_environment = None
 

@@ -10,6 +10,9 @@ class Settings(object):
     START_PORT = json.loads(os.getenv("START_PORT"))
     END_PORT = json.loads(os.getenv("END_PORT"))
     
+    # FILTER_TYPE
+    FILTER_TYPE= os.getenv("FILTER_TYPE", "anoncreds")
+    
     # Load test data
     SCHEMA_ID: str = os.getenv("SCHEMA")
     CRED_DEF_ID: str = os.getenv("CRED_DEF")

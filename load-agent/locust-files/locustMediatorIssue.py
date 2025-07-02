@@ -1,8 +1,8 @@
-from locust import SequentialTaskSet, task, User, between
-from locustClient import CustomClient
-from constants import standard_wait
-
 import os
+
+from constants import standard_wait
+from locust import SequentialTaskSet, User, task
+from locustClient import CustomClient
 
 WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
@@ -28,16 +28,14 @@ class UserBehaviour(SequentialTaskSet):
     def accept_invite(self):
         self.client.ensure_is_running()
 
-        connection = self.client.accept_invite(self.invite['invitation_url'])
-        self.connection = connection
+        self.connection = self.client.accept_invite(self.invite['invitation_url'])
 
     @task
     def receive_credential(self):
         self.client.ensure_is_running()
 
-        credential = self.client.receive_credential(self.invite['connection_id'])
+        self.client.receive_credential(self.invite['connection_id'])
 
 class Issue(CustomLocust):
     tasks = [UserBehaviour]
     wait_time = standard_wait
-#    host = "example.com"

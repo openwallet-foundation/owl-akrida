@@ -1,54 +1,12 @@
-from .base import BaseIssuer
-import requests
 import time
-from models import IssueCredentialV1, CredentialProposalV1, AnonCredsRevocation
-from settings import Settings
+
+import requests
+from models import AnonCredsRevocation, CredentialProposalV1, IssueCredentialV1
+
+from .base import BaseIssuer
 
 
 class AcapyIssuer(BaseIssuer):
-    def __init__(self):
-        self.label = "Test Issuer"
-        self.agent_url = Settings.ISSUER_URL
-        self.headers = Settings.ISSUER_HEADERS | {"Content-Type": "application/json"}
-        self.schema_id = Settings.SCHEMA_ID
-        self.cred_def_id = Settings.CRED_DEF_ID
-        self.cred_attributes = Settings.CRED_ATTR
-
-    def get_invite(self):
-        r = requests.post(
-                f"{self.agent_url}/out-of-band/create-invitation?auto_accept=true",
-                json={"handshake_protocols": Settings.HANDSHAKE_PROTOCOLS},
-                headers=self.headers,
-        )
-        invitation = r.json()
-        
-        r = requests.get(
-                f"{self.agent_url}/connections",
-                params={"invitation_msg_id": invitation['invi_msg_id']},
-                headers=self.headers,
-        )
-        connection = r.json()['results'][0]
-        
-        return {
-                'invitation_url': invitation['invitation_url'], 
-                'connection_id': connection['connection_id']
-        }
-
-    def is_up(self):
-        try:
-            r = requests.get(
-                f"{self.agent_url}/status",
-                headers=self.headers,
-            )
-            if r.status_code != 200:
-                raise Exception(r.content)
-
-            r.json()
-        except Exception:
-            return False
-
-        return True
-
     def issue_credential(self, connection_id):
         schema_parts = self.schema_id.split(":")
 
@@ -63,7 +21,7 @@ class AcapyIssuer(BaseIssuer):
             schema_version=schema_parts[3],
             credential_proposal=CredentialProposalV1(attributes=self.cred_attributes),
         ).model_dump()
-        
+
         r = requests.post(
             f"{self.agent_url}/issue-credential/send",
             json=payload,
@@ -94,10 +52,3 @@ class AcapyIssuer(BaseIssuer):
         )
         if r.status_code != 200:
             raise Exception(r.content)
-
-    def send_message(self, connection_id, msg):
-        requests.post(
-            f"{self.agent_url}/connections/{connection_id}/send-message",
-            json={"content": msg},
-            headers=self.headers,
-        )
