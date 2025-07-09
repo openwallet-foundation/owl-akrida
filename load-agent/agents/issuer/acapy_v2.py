@@ -19,7 +19,7 @@ from .base import BaseIssuer
 class AcapyIssuer(BaseIssuer):
     def __init__(self):
         super().__init__()
-        if Settings.IS_ANONCREDS == "True":
+        if Settings.IS_ANONCREDS:
             self.filter = AnonCredsFilter(anoncreds=Filter(cred_def_id=self.cred_def_id))
             self.revoke_endpoint = "/anoncreds/revocation/revoke"
         else:

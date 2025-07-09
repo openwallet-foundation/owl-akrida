@@ -11,8 +11,6 @@ class Settings(object):
     START_PORT = json.loads(os.getenv("START_PORT"))
     END_PORT = json.loads(os.getenv("END_PORT"))
     
-    # IS_ANONCREDS
-    IS_ANONCREDS = os.getenv("IS_ANONCREDS", "True")
 
     # Load test data
     SCHEMA_ID: str = os.getenv("SCHEMA")
@@ -34,6 +32,9 @@ class Settings(object):
         OOB_INVITE = False
     else: 
         OOB_INVITE = bool(os.getenv("OOB_INVITE", False))
+        
+    # IS_ANONCREDS
+    IS_ANONCREDS: bool = bool(os.getenv("IS_ANONCREDS", False))
 
     # Verifier
     VERIFIER_URL: str = os.getenv("VERIFIER_URL")

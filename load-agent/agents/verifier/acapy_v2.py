@@ -24,7 +24,7 @@ class AcapyVerifier(BaseVerifier):
             version="1.0",
         ).model_dump()
 
-        if Settings.IS_ANONCREDS == "True":
+        if Settings.IS_ANONCREDS:
             return AnonCredsPresReq(anoncreds=proof_request)
         else:
             return IndyPresReq(indy=proof_request)
@@ -79,7 +79,6 @@ class AcapyVerifier(BaseVerifier):
                     presentation_json["state"] != "request_sent"
                     and presentation_json["state"] != "presentation_received"
                 ):
-                    "request_sent" and presentation_json["state"] != "presentation_received"
                     break
                 time.sleep(1)
 
