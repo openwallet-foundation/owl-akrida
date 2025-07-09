@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,9 +11,9 @@ class Settings(object):
     START_PORT = json.loads(os.getenv("START_PORT"))
     END_PORT = json.loads(os.getenv("END_PORT"))
     
-    # FILTER_TYPE
-    FILTER_TYPE= os.getenv("FILTER_TYPE", "anoncreds")
-    
+    # IS_ANONCREDS
+    IS_ANONCREDS = os.getenv("IS_ANONCREDS", "True")
+
     # Load test data
     SCHEMA_ID: str = os.getenv("SCHEMA")
     CRED_DEF_ID: str = os.getenv("CRED_DEF")

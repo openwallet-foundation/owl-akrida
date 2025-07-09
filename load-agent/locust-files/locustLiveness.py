@@ -18,7 +18,7 @@ class UserBehaviour(SequentialTaskSet):
 
     @task
     def get_liveness(self):
-        invite = self.client.issuer_getliveness()
+        self.client.issuer_getliveness()
 
 class Liveness(CustomLocust):
     tasks = [UserBehaviour]

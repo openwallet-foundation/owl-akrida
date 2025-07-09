@@ -1,8 +1,8 @@
-from locust import SequentialTaskSet, task, User
-from locustClient import CustomClient
-from constants import standard_wait
-
 import os
+
+from constants import standard_wait
+from locust import SequentialTaskSet, User, task
+from locustClient import CustomClient
 
 WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
@@ -29,17 +29,17 @@ class UserBehaviour(SequentialTaskSet):
         self.client.ensure_is_running()
 
         connection = self.client.accept_invite(self.invite['invitation_url'])
-        self.connection = connection
+        if connection is not None:
+            self.connection = connection
 
     @task
     def receive_credential(self):
         self.client.ensure_is_running()
-
-        credential = self.client.receive_credential(self.invite['connection_id'])
+        self.client.receive_credential(self.invite['connection_id'])
 
     @task
     def get_verifier_invite(self):
-        verifier_invite = self.client.verifier_getinvite()
+        verifier_invite = self.client.issuer_getinvite()
         self.verifier_invite = verifier_invite
 
     @task
@@ -47,18 +47,16 @@ class UserBehaviour(SequentialTaskSet):
         self.client.ensure_is_running()
 
         verifier_connection = self.client.accept_invite(self.verifier_invite['invitation_url'])
-        self.verifier_connection = verifier_connection
+        if verifier_connection is not None:
+            self.verifier_connection = verifier_connection
 
     @task
     def presentation_exchange(self):
         self.client.ensure_is_running()
-
-        # Need connection id
-        presentation = self.client.presentation_exchange(self.verifier_invite['connection_id'])
+        self.client.presentation_exchange(self.verifier_invite['connection_id'])
 
 
 class Issue(CustomLocust):
     tasks = [UserBehaviour]
     wait_time = standard_wait
-#    host = "example.com"
 

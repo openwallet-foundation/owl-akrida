@@ -1,8 +1,8 @@
-from locust import TaskSet, task, User
-from locustClient import CustomClient
-from constants import standard_wait
-
 import os
+
+from constants import standard_wait
+from locust import TaskSet, User, task
+from locustClient import CustomClient
 
 WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
@@ -28,4 +28,3 @@ class UserBehaviour(TaskSet):
 class MediatorPing(CustomLocust):
     tasks = [UserBehaviour]
     wait_time = standard_wait
-#    host = "example.com"

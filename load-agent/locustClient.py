@@ -286,7 +286,11 @@ class CustomClient:
             self.run_command({"cmd": "receiveInvitation", "invitationUrl": invite})
 
         line = self.readjsonline()
-
+    
+        # Filter out unwanted lines
+        if line.get("connection") is None:
+            return None
+    
         return line["connection"]
 
     @stopwatch

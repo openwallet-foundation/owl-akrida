@@ -17,7 +17,6 @@ class BaseIssuer(BaseAgent):
 
     @abstractmethod
     def issue_credential(self, connection_id):
-        # return { "connection_id": , "cred_ex_id":  ] }
         raise NotImplementedError
 
     @abstractmethod

@@ -27,8 +27,9 @@ class UserBehaviour(SequentialTaskSet):
     @task
     def accept_invite(self):
         self.client.ensure_is_running()
-
-        self.connection = self.client.accept_invite(self.invite['invitation_url'])
+        connection = self.client.accept_invite(self.invite['invitation_url'])
+        if connection is not None:
+            self.connection = connection
 
     @task
     def receive_credential(self):

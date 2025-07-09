@@ -1,8 +1,8 @@
-from locust import SequentialTaskSet, task, User
-from locustClient import CustomClient
-from constants import standard_wait
-
 import os
+
+from constants import standard_wait
+from locust import SequentialTaskSet, User, task
+from locustClient import CustomClient
 
 WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
@@ -21,20 +21,14 @@ class UserBehaviour(SequentialTaskSet):
 
     def accept_invite(self):
         self.client.ensure_is_running()
-        # if not self.client.is_running():
-        #     self.client.shutdown()
-        #     self.on_start(self)
 
-        connection = self.client.accept_invite(self.invite["invitation_url"])
-        self.connection = connection
+        connection = self.client.accept_invite(self.invite['invitation_url'])
+        if connection is not None:
+            self.connection = connection
 
     def receive_credential(self):
         self.client.ensure_is_running()
-        # if not self.client.is_running():
-        #     self.client.shutdown()
-        #     self.on_start(self)
-
-        credential = self.client.receive_credential(self.invite["connection_id"])
+        self.client.receive_credential(self.invite["connection_id"])
 
     def get_verifier_invite(self):
         verifier_invite = self.client.verifier_getinvite()
@@ -42,9 +36,10 @@ class UserBehaviour(SequentialTaskSet):
 
     def accept_verifier_invite(self):
         self.client.ensure_is_running()
-
+        
         verifier_connection = self.client.accept_invite(self.verifier_invite['invitation_url'])
-        self.verifier_connection = verifier_connection
+        if verifier_connection is not None:
+            self.verifier_connection = verifier_connection
 
     def on_start(self):
         self.client.startup(withMediation=bool(WITH_MEDIATION))
@@ -68,7 +63,6 @@ class UserBehaviour(SequentialTaskSet):
 
             restart = False
 
-            # Need connection id
             try:
                 presentation = self.client.presentation_exchange(
                     self.verifier_invite["connection_id"]

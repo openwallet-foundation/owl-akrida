@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -44,7 +44,7 @@ class RequestPresentation(BaseModel):
 
 
 class AnonCredsRevocation(BaseModel):
-    comment: str = Field()
+    comment: Optional[str] = Field(default=None)
     connection_id: str = Field()
     cred_ex_id: str = Field()
     notify: bool = Field(True)

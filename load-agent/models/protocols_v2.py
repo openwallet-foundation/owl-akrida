@@ -21,6 +21,7 @@ class IndyFilter(BaseModel):
     indy: Filter = Field()
 
 class IssueCredential(BaseModel):
+    auto_issue: bool = Field(True)
     connection_id: str = Field()
     credential_preview: CredentialPreview = Field()
     filter: Union[AnonCredsFilter, IndyFilter] = Field()
@@ -41,7 +42,7 @@ class IndyPresReq(BaseModel):
     indy: ProofRequest = Field()
 
 class RequestPresentation(BaseModel):
-    auto_verify: bool = Field(True)
-    auto_remove: bool = Field(True)
+    auto_verify: bool = Field(False)
+    auto_remove: bool = Field(False)
     connection_id: str = Field(None)
     presentation_request: Union[AnonCredsPresReq, DifPresReq, IndyPresReq] = Field()
