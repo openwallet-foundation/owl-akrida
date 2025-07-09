@@ -34,7 +34,7 @@ class Settings(object):
         OOB_INVITE = bool(os.getenv("OOB_INVITE", False))
         
     # IS_ANONCREDS
-    IS_ANONCREDS: bool = bool(os.getenv("IS_ANONCREDS", False))
+    IS_ANONCREDS = os.getenv("IS_ANONCREDS", "false").lower() in ("true", "1", "yes")
 
     # Verifier
     VERIFIER_URL: str = os.getenv("VERIFIER_URL")
