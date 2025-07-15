@@ -1,20 +1,25 @@
+from abc import abstractmethod
 
-class BaseIssuer:
+from settings import Settings
 
-        def get_invite(self):
-                # return  {'invitation_url': , 'connection_id': }
-                raise NotImplementedError
+from ..base import BaseAgent
 
-        def is_up(self):
-                # return True/False
-                raise NotImplementedError
 
-        def issue_credential(self, connection_id):
-                # return { "connection_id": , "cred_ex_id":  ] }
-                raise NotImplementedError
+class BaseIssuer(BaseAgent):
+    def __init__(self):
+        super().__init__()
+        self.label = "Test Issuer"
+        self.agent_url = Settings.ISSUER_URL
+        self.headers = Settings.ISSUER_HEADERS | {"Content-Type": "application/json"}
+        self.schema_id = Settings.SCHEMA_ID
+        self.cred_def_id = Settings.CRED_DEF_ID
+        self.cred_attributes = Settings.CRED_ATTR
 
-        def revoke_credential(self, connection_id, credential_exchange_id):
-                raise NotImplementedError
+    @abstractmethod
+    def issue_credential(self, connection_id):
+        raise NotImplementedError
 
-        def send_message(self, connection_id, msg):
-                raise NotImplementedError
+    @abstractmethod
+    def revoke_credential(self, connection_id, credential_exchange_id):
+        raise NotImplementedError
+

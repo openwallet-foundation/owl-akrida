@@ -1,8 +1,8 @@
-from locust import SequentialTaskSet, task, User
-from locustClient import CustomClient
-from constants import standard_wait
-
 import os
+
+from constants import standard_wait
+from locust import SequentialTaskSet, User, task
+from locustClient import CustomClient
 
 WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
@@ -29,7 +29,8 @@ class UserBehaviour(SequentialTaskSet):
         self.client.ensure_is_running()
 
         connection = self.client.accept_invite(self.invite['invitation_url'])
-        self.connection = connection
+        if connection is not None:
+            self.connection = connection
 
     def on_stop(self):
         self.client.shutdown()
@@ -42,4 +43,3 @@ class UserBehaviour(SequentialTaskSet):
 class MediatorMsg(CustomLocust):
     tasks = [UserBehaviour]
     wait_time = standard_wait
-#    host = "example.com"

@@ -1,21 +1,25 @@
+from abc import abstractmethod
 
-class BaseVerifier:
-        def get_invite(self):
-                # return  {'invitation_url': , 'connection_id': }
-                raise NotImplementedError
+from settings import Settings
 
-        def is_up(self):
-                # return True/False
-                raise NotImplementedError
+from ..base import BaseAgent
 
-        def request_verification(self, connection_id):
-                # return r['presentation_exchange_id']
-                raise NotImplementedError
 
-        def verify_verification(self, presentation_exchange_id):
-                # return True on success
-                # Throw Exception on failure
-                raise NotImplementedError
+class BaseVerifier(BaseAgent):
+    def __init__(self):
+        super().__init__()
+        self.label = "Test Verifier"
+        self.agent_url = Settings.VERIFIER_URL
+        self.headers = Settings.VERIFIER_HEADERS | {"Content-Type": "application/json"}
+        self.verifiedTimeoutSeconds = Settings.VERIFIED_TIMEOUT_SECONDS
 
-        def send_message(self, connection_id, msg):
-                raise NotImplementedError
+    @abstractmethod
+    def request_verification(self, connection_id):
+        # return r['presentation_exchange_id']
+        raise NotImplementedError
+
+    @abstractmethod
+    def verify_verification(self, presentation_exchange_id):
+        # return True on success
+        # Throw Exception on failure
+        raise NotImplementedError

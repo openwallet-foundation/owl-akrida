@@ -1,6 +1,7 @@
-from locust import SequentialTaskSet, task, User, between
-from locustClient import CustomClient
 from constants import standard_wait
+from locust import SequentialTaskSet, User, task
+from locustClient import CustomClient
+
 
 class CustomLocust(User):
     abstract = True
@@ -17,9 +18,8 @@ class UserBehaviour(SequentialTaskSet):
 
     @task
     def get_liveness(self):
-        invite = self.client.issuer_getliveness()
+        self.client.issuer_getliveness()
 
 class Liveness(CustomLocust):
     tasks = [UserBehaviour]
     wait_time = standard_wait
-#    host = "example.com"

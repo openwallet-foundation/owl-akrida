@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,6 +11,7 @@ class Settings(object):
     START_PORT = json.loads(os.getenv("START_PORT"))
     END_PORT = json.loads(os.getenv("END_PORT"))
     
+
     # Load test data
     SCHEMA_ID: str = os.getenv("SCHEMA")
     CRED_DEF_ID: str = os.getenv("CRED_DEF")
@@ -30,6 +32,9 @@ class Settings(object):
         OOB_INVITE = False
     else: 
         OOB_INVITE = bool(os.getenv("OOB_INVITE", False))
+        
+    # IS_ANONCREDS
+    IS_ANONCREDS = os.getenv("IS_ANONCREDS", "false").lower() in ("true", "1", "yes")
 
     # Verifier
     VERIFIER_URL: str = os.getenv("VERIFIER_URL")

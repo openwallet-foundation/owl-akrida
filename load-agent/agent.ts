@@ -15,14 +15,9 @@ import {
   IndyVdrIndyDidRegistrar,
 } from '@credo-ts/indy-vdr'
 
-// var indySdk = require('indy-sdk')
-import { AskarModule, AskarMultiWalletDatabaseScheme } from '@credo-ts/askar'
-// import { ariesAskar } from '@hyperledger/aries-askar-react-native'
-// import { AskarModule } from '@aries-framework/askar'
+import { AskarModule } from '@credo-ts/askar'
 
 import {
-  AutoAcceptCredential,
-  AutoAcceptProof,
   DidsModule,
   ProofsModule,
   V2ProofProtocol,
@@ -37,10 +32,8 @@ import {
   Agent,
   MediationRecipientModule,
   MediatorPickupStrategy,
-
   CredentialEventTypes,
   ProofEventTypes,
-  MediatorModule,
   DidCommMimeType,
   TransportEventTypes,
   TrustPingEventTypes,
@@ -180,7 +173,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
     agent.registerOutboundTransport(httpTransport)
 
   if (withMediation) {
-    // wait for medation to be configured
+    // wait for mediation to be configured
     let timeout = config.verified_timeout_seconds * 1000
 
     const TimeDelay = new Promise((resolve, reject) => {
@@ -250,7 +243,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
 
   } catch (error) {
 
-    process.stderr.write('******** ERROR Error at intialize agent'+ '\n' + error + '\n')
+    process.stderr.write('******** ERROR Error at initialize agent'+ '\n' + error + '\n')
   }
   
 }
@@ -294,7 +287,7 @@ const pingMediator = async (agent) => {
     await agent.connections.sendPing(mediatorConnection.id, {})
   }
 
-  // wait for ping repsonse
+  // wait for ping response
   let value = await Promise.race([TimeDelay, def.promise])
 
   if (!value) {
