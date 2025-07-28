@@ -43,6 +43,8 @@ import {
   CredentialState,
   ProofState,
   BasicMessageEventTypes,
+  ConsoleLogger,
+  LogLevel,
 } from '@credo-ts/core'
 import { anoncreds } from '@hyperledger/anoncreds-nodejs'
 import { ariesAskar } from '@hyperledger/aries-askar-nodejs'
@@ -77,6 +79,10 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
   let mediation_url = config.mediation_url
   let endpoints = ['http://' + config.agent_ip + ':' + port]
 
+  const logLevel = parseInt(process.env.AGENT_LOGGING_LEVEL) || LogLevel.off
+
+  process.stderr.write('Agent Log Level: ' + parseInt(process.env.AGENT_LOGGING_LEVEL) + '\n')
+
   if (!agentConfig || agentConfig === null || agentConfig.length === 0) {
     agentConfig = {
       label: generateString(14),
@@ -88,7 +94,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       endpoints: endpoints,
       mediation_url:mediation_url,
       autoAcceptInvitation: true,
-      // logger: new ConsoleLogger(LogLevel.trace),
+      logger: new ConsoleLogger(logLevel),
       didCommMimeType: DidCommMimeType.V1,
     }
   }
