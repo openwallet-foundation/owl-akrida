@@ -2,6 +2,7 @@ import inspect
 import json
 import os
 import signal
+import sys
 import time
 
 from gevent import lock as gevent_lock
@@ -226,35 +227,44 @@ class CustomClient:
 
     def readjsonline(self):
         try:
-            line = None
-            raw_line_stdout = None
+            while True:
+                line = None
+                raw_line_stdout = None
 
-            if not self.agent.stdout.closed:
+                if self.agent.stdout.closed:
+                    raise Exception("Stdout is closed.")
+
                 q = select.poll()
                 q.register(self.agent.stdout, select.POLLIN)
 
                 if q.poll(self.readTimeoutSeconds * 1000):
                     raw_line_stdout = self.agent.stdout.readline()
+
+                    if not raw_line_stdout:
+                        raise Exception("EOF reached or empty line received.")
+
                     try:
                         line = json.loads(raw_line_stdout)
-                    except Exception as e:
-                        raise Exception(
-                            "An error was encountered while parsing stdout: ", e
-                        )
+                    except json.JSONDecodeError:
+                        # Log non-JSON data and continue reading
+                        print(f"{raw_line_stdout.strip()}", file=sys.stderr)
+                        continue  # Try reading the next line
                 else:
                     raise Exception("Read Timeout")
 
-            if not line:
-                raise Exception("Invalid read.")
+                if not line or not isinstance(line, dict):
+                    print(line, file=sys.stderr)
+                    continue  # Skip to next line if somehow still invalid
 
-            if line["error"] != 0:
-                raise Exception("Error encountered within load testing agent: ", line)
+                if line.get("error") != 0:
+                    raise Exception("Error encountered within load testing agent: ", line)
 
-            return line
+                return line
+
         except Exception as e:
             self.errors += 1
             if self.errors > self.errorsBeforeRestart:
-                self.shutdown()  ## if we are in bad state we may need to restart...
+                self.shutdown()  # Restart if in bad state
             raise e
 
     @stopwatch
