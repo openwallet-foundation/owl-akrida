@@ -15,7 +15,7 @@ class UserBehaviour(ConnectionUserBehaviour):
         self.client.ensure_is_running()
         for invite in self.invites:
             self.client.receive_credential(invite["connection_id"])
-            time.sleep(deviation_wait(0.1, 0.3))
+            time.sleep(deviation_wait())
 
     @task
     def get_verifier_invite(self):

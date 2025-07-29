@@ -19,7 +19,7 @@ class UserBehaviour(ConnectionUserBehaviour):
 
         for invite in self.invites:
             self.client.receive_credential(invite["connection_id"])
-            time.sleep(deviation_wait(0.1, 0.3))
+            time.sleep(deviation_wait())
 
     @task(1)
     def presentation_exchange(self):
@@ -28,7 +28,7 @@ class UserBehaviour(ConnectionUserBehaviour):
         # Need connection id
         for invite in self.invites:
             self.client.presentation_exchange(invite["connection_id"])
-            time.sleep(deviation_wait(0.1, 0.3))
+            time.sleep(deviation_wait())
 
 
 class Issue(CustomLocust):

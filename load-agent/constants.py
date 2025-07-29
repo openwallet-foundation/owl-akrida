@@ -9,5 +9,5 @@ max_wait = float(os.getenv("LOCUST_MAX_WAIT", 1))
 standard_wait = between(min_wait, max_wait)
 
 # Equivalent to locust.between
-def deviation_wait(a: float, b: float) -> float:
-    return random.uniform(a, b)
+def deviation_wait() -> float:
+    return random.uniform(min_wait, max_wait)
