@@ -39,6 +39,7 @@ services:
       - PICKUP_STRATEGY=${PICKUP_STRATEGY}
       - IS_ANONCREDS=${IS_ANONCREDS}
       - AGENT_LOGGING_LEVEL=${AGENT_LOGGING_LEVEL}
+      - CONNECTIONS_PER_AGENT=${CONNECTIONS_PER_AGENT}
     networks:
       - app-network
 
