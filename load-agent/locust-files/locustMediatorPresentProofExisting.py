@@ -1,56 +1,36 @@
-import os
+import time
 
-from constants import standard_wait
-from locust import SequentialTaskSet, User, task
-from locustClient import CustomClient
+from constants import deviation_wait, standard_wait
+from locust import task
+from locustConnection import ConnectionUserBehaviour
+from locustCustom import CustomLocust
 
-WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
-class CustomLocust(User):
-    abstract = True
-
+class UserBehaviour(ConnectionUserBehaviour):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.client = CustomClient(self.host)
 
-
-class UserBehaviour(SequentialTaskSet):
-    def get_invite(self):
-        invite = self.client.issuer_getinvite()
-        self.invite = invite
-
-    def accept_invite(self):
-        self.client.ensure_is_running()
-
-        connection = self.client.accept_invite(self.invite['invitation_url'])
-        if connection is not None:
-            self.connection = connection
-
+    @task
     def receive_credential(self):
         self.client.ensure_is_running()
-        self.client.receive_credential(self.invite["connection_id"])
+        for invite in self.invites:
+            self.client.receive_credential(invite["connection_id"])
+            time.sleep(deviation_wait())
 
+    @task
     def get_verifier_invite(self):
         verifier_invite = self.client.verifier_getinvite()
         self.verifier_invite = verifier_invite
 
+    @task
     def accept_verifier_invite(self):
         self.client.ensure_is_running()
-        
-        verifier_connection = self.client.accept_invite(self.verifier_invite['invitation_url'])
+
+        verifier_connection = self.client.accept_invite(
+            self.verifier_invite["invitation_url"]
+        )
         if verifier_connection is not None:
             self.verifier_connection = verifier_connection
-
-    def on_start(self):
-        self.client.startup(withMediation=bool(WITH_MEDIATION))
-        self.get_invite()
-        self.accept_invite()
-        self.receive_credential()
-        self.get_verifier_invite()
-        self.accept_verifier_invite()
-
-    def on_stop(self):
-        self.client.shutdown()
 
     @task
     def presentation_exchange(self):

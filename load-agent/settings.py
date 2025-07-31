@@ -55,3 +55,6 @@ class Settings(object):
         "https://didcomm.org/didexchange/1.0",
         "https://didcomm.org/didexchange/1.1"
     ]
+    
+    # Connections per agent
+    CONNECTIONS_PER_AGENT: int = int(os.getenv("CONNECTIONS_PER_AGENT", 1))

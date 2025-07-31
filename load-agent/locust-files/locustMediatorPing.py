@@ -1,21 +1,16 @@
 import os
 
 from constants import standard_wait
-from locust import TaskSet, User, task
-from locustClient import CustomClient
+from locust import TaskSet, task
+from locustCustom import CustomLocust
 
 WITH_MEDIATION = os.getenv("WITH_MEDIATION")
 
-class CustomLocust(User):
-    abstract = True
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
-        self.client = CustomClient(self.host)
 
 class UserBehaviour(TaskSet):
     def on_start(self):
         self.client.startup(withMediation=bool(WITH_MEDIATION))
-        
+
     def on_stop(self):
         self.client.shutdown()
 
@@ -24,6 +19,7 @@ class UserBehaviour(TaskSet):
         self.client.ensure_is_running()
 
         self.client.ping_mediator()
+
 
 class MediatorPing(CustomLocust):
     tasks = [UserBehaviour]
