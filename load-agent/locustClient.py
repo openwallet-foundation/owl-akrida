@@ -1,5 +1,7 @@
 import inspect
 import json
+import sys
+
 import os
 import signal
 import sys
@@ -138,6 +140,7 @@ class CustomClient:
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
+                stderr=sys.stderr,
                 shell=False,
             )
 
