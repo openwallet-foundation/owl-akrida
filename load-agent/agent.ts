@@ -57,6 +57,25 @@ var deferred = require('deferred')
 var process = require('process')
 var readline = require('readline')
 
+/*
+  Remap all loging to stderr
+*/
+class ConsoleError extends ConsoleLogger {
+  constructor(...args: ConstructorParameters<typeof ConsoleLogger>) {
+      super(...args);
+      // Map our log levels to console levels
+      (this as any).consoleLogMap = {
+          [LogLevel.test]: 'error',
+          [LogLevel.trace]: 'error',
+          [LogLevel.debug]: 'error',
+          [LogLevel.info]: 'error',
+          [LogLevel.warn]: 'error',
+          [LogLevel.error]: 'error',
+          [LogLevel.fatal]: 'error',
+      };
+  }
+}
+
 const characters =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
@@ -94,7 +113,7 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       endpoints: endpoints,
       mediation_url:mediation_url,
       autoAcceptInvitation: true,
-      logger: new ConsoleLogger(logLevel),
+      logger: new ConsoleError(logLevel),
       didCommMimeType: DidCommMimeType.V1,
     }
   }
