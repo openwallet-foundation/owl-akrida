@@ -49,20 +49,21 @@ def stopwatch(func):
             result = func(*args, **kwargs)
         except Exception as e:
             total = int((time.time() - start) * 1000)
-            events.request_failure.fire(
+            events.request.fire(
                 request_type="TYPE",
-                name=file_name + "_" + task_name,
+                name=f"{file_name}_{task_name}",
                 response_time=total,
-                exception=e,
                 response_length=0,
+                exception=e,
             )
         else:
             total = int((time.time() - start) * 1000)
-            events.request_success.fire(
+            events.request.fire(
                 request_type="TYPE",
-                name=file_name + "_" + task_name,
+                name=f"{file_name}_{task_name}",
                 response_time=total,
-                response_length=0,
+                response_length=0,     # size in bytes
+                exception=None
             )
         return result
 

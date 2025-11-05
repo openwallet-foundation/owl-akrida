@@ -11,7 +11,7 @@ RUN apt-get update -y && apt-get install -y curl gcc g++ make git libssl-dev pkg
 
 RUN apt-get install -y python3-pip
 
-RUN pip3 install locust==2.14.2
+RUN pip3 install locust==2.42.1 python-dotenv pydantic
 
 FROM base AS dev
 
