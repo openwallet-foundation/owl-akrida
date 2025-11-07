@@ -1,62 +1,47 @@
-#FROM ubuntu:20.04 AS base
-FROM docker.io/node:18.20.7-bullseye AS base
+FROM python:3.10-slim
+
+ARG INCLUDE_VDR=false
+
+# Install Node 18
+RUN apt-get update && apt-get install -y curl gnupg
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get install -y nodejs
 
 ARG LOADDIR="/load-agent"
-
-## Using requirements from https://aries.js.org/guides/getting-started/installation/nodejs/linux
-
-# Setup NodeJS environment for AFJ
-
 ENV TZ=America/Denver
+
+# Timezone
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt-get update -y && apt-get install -y curl gcc g++ make git libssl-dev pkg-config
+# System dependencies
+RUN apt-get update -y && apt-get install -y \
+    curl gcc g++ make git libssl-dev pkg-config \
+    libsodium-dev libzmq3-dev python3-pip tmux htop
 
-#RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-#RUN apt-get update -y && apt-get install -y nodejs
+RUN corepack enable
+RUN corepack prepare yarn@stable --activate
 
-#RUN npm install --global yarn
+# Rust / Indy setup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-RUN yarn global add ts-node typescript
+# Python / Locust
+RUN pip3 install --upgrade pip
+RUN pip3 install locust==2.42.2 python-dotenv pydantic
 
-RUN apt-get install -y libsodium-dev libzmq3-dev
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rust.sh && sh -- rust.sh -y
-
-RUN git clone https://github.com/hyperledger/indy-sdk
-
-RUN cd indy-sdk/libindy && \
-    git checkout v1.16.0 && \
-    /root/.cargo/bin/cargo build --release && \
-    mv target/release/libindy.so /usr/lib/libindy.so
-
-# Setup Locust
-
-RUN apt-get install -y python3-pip
-
-RUN pip3 install locust==2.42.1 python-dotenv pydantic
-
-FROM base AS dev
-
-# Setup Dev environment
-RUN apt-get install -y tmux htop
-
-# Include global arg in this stage of the build
-ARG LOADDIR
-# Set working directory to function root directory
+# App code
 WORKDIR ${LOADDIR}
+ADD ./load-agent ${LOADDIR}/
 
-FROM base AS release
+# Conditionally copy vdr proxy code
+COPY ./load-vdr-proxy /tmp/load-vdr-proxy
+RUN if [ "$INCLUDE_VDR" = "true" ]; then \
+        mkdir -p /load-vdr-proxy; \
+        cp -r /tmp/load-vdr-proxy/* /load-vdr-proxy/; \
+    fi
 
-# Include global arg in this stage of the build
-ARG LOADDIR
-# Set working directory to function root directory
-WORKDIR ${LOADDIR}
-
-ADD ./load-agent load-agent
-
-WORKDIR ${LOADDIR}/load-agent
-
+# Build JS agent
 RUN yarn install
+RUN yarn tsc
 
-CMD "locust"
+# Default command
+CMD ["locust"]
