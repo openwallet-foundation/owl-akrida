@@ -1,7 +1,5 @@
 import inspect
 import json
-import sys
-
 import os
 import signal
 import sys
@@ -136,7 +134,7 @@ class CustomClient:
 
             self.errors = 0
             self.agent = subprocess.Popen(
-                ["ts-node", "agent.ts"],
+                ["node", "--max-old-space-size=64", "dist/agent.js"],
                 bufsize=0,
                 universal_newlines=True,
                 stdout=subprocess.PIPE,

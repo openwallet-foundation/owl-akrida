@@ -58,7 +58,7 @@ var process = require('process')
 var readline = require('readline')
 
 /*
-  Remap all loging to stderr
+  Remap all logging to stderr
 */
 class ConsoleError extends ConsoleLogger {
   constructor(...args: ConstructorParameters<typeof ConsoleLogger>) {
@@ -111,10 +111,14 @@ const initializeAgent = async (withMediation, port, agentConfig = null) => {
       },
       autoAcceptConnections: true,
       endpoints: endpoints,
-      mediation_url:mediation_url,
+      mediation_url: mediation_url,
       autoAcceptInvitation: true,
       logger: new ConsoleError(logLevel),
       didCommMimeType: DidCommMimeType.V1,
+      storage: {
+        type: 'sqlite',
+        config: { memory: true }, // ephemeral
+      },
     }
   }
 

@@ -4,7 +4,6 @@ services:
   load-agent:
     build:
       context: .
-      target: release
     hostname: load-agent
     restart: unless-stopped
     user: root 

@@ -9,22 +9,25 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@credo-ts/anoncreds": "0.5.15",
-    "@credo-ts/askar": "0.5.15",
-    "@credo-ts/core": "0.5.15",
-    "@credo-ts/indy-vdr": "0.5.15",
-    "@credo-ts/node": "0.5.15",
-    "@credo-ts/react-native": "0.5.15",
+    "@credo-ts/anoncreds": "0.5.17",
+    "@credo-ts/askar": "0.5.17",
+    "@credo-ts/core": "0.5.17",
+    "@credo-ts/indy-vdr": "0.5.17",
+    "@credo-ts/node": "0.5.17",
+    "@credo-ts/react-native": "0.5.17",
     "@hyperledger/anoncreds-nodejs": "0.2.2",
     "@hyperledger/aries-askar-nodejs": "0.2.3",
     "@hyperledger/indy-vdr-nodejs": "0.2.2",
+    "@veramo/core": "^6.0.0",
     "deferred": "^0.7.11",
     "dotenv": "^16.0.3",
+    "jose": "^6.1.0",
     "log-buffer": "^0.0.3",
+    "ref-array-di": "^1.2.2",
+    "ref-napi": "^3.0.3",
     "typescript": "^5.6.3"
   },
   "devDependencies": {
-    "@types/indy-sdk-react-native": "npm:@types/indy-sdk",
-    "@types/node": "^18.18.8"
+    "@types/node": "^18.19.130"
   }
 }

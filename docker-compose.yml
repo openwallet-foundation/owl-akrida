@@ -3,7 +3,8 @@ services:
   load-agent:
     build:
       context: .
-      target: release
+      args:
+        INCLUDE_VDR: ${INCLUDE_VDR}
     hostname: load-agent
     restart: unless-stopped
     user: root 
