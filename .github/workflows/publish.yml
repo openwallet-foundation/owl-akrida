@@ -32,7 +32,13 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/owl-akrida:${{ inputs.tag }} .
+          docker build \
+            -t ghcr.io/${{ github.repository_owner }}/owl-akrida:${{ inputs.tag }} \
+            --label org.opencontainers.image.version=${{ inputs.tag }} \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            --label org.opencontainers.image.created=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+            --label org.opencontainers.image.source=https://github.com/${{ github.repository }} \
+            .
 
       - name: Tag image as latest
         run: |
