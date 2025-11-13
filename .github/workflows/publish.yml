@@ -1,0 +1,51 @@
+name: Publish Docker Image to GHCR
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag or version to publish (e.g. v1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: github.repository == 'openwallet-foundation/owl-akrida'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ghcr.io/${{ github.repository_owner }}/owl-akrida:${{ inputs.tag }} \
+            --label org.opencontainers.image.version=${{ inputs.tag }} \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            --label org.opencontainers.image.created=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+            --label org.opencontainers.image.source=https://github.com/${{ github.repository }} \
+            .
+
+      - name: Tag image as latest
+        run: |
+          docker tag ghcr.io/${{ github.repository_owner }}/owl-akrida:${{ inputs.tag }} \
+            ghcr.io/${{ github.repository_owner }}/owl-akrida:latest
+
+      - name: Push Docker images
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/owl-akrida:${{ inputs.tag }}
+          docker push ghcr.io/${{ github.repository_owner }}/owl-akrida:latest
