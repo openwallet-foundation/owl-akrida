@@ -134,7 +134,7 @@ class CustomClient:
 
             self.errors = 0
             self.agent = subprocess.Popen(
-                ["node", "--max-old-space-size=64", "dist/agent.js"],
+                ["node", "--max-old-space-size=128", "dist/agent.js"],
                 bufsize=0,
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
